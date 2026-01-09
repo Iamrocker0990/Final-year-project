@@ -1,0 +1,165 @@
+import React from 'react';
+import { BookOpen, Video, FileText, BarChart2, Award, MessageCircle, Upload, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import DashboardLayout from '../../components/layout/DashboardLayout';
+import Card from '../../components/ui/Card';
+import Button from '../../components/ui/Button';
+import Badge from '../../components/ui/Badge';
+
+const Assignments = () => {
+    const sidebarItems = [
+        { icon: BookOpen, label: 'Dashboard', href: '/student' },
+        { icon: BookOpen, label: 'My Courses', href: '/student/courses' },
+        { icon: Video, label: 'Live Classes', href: '/student/live-classes' },
+        { icon: FileText, label: 'Assignments', href: '/student/assignments' },
+        { icon: Award, label: 'Quizzes', href: '/student/quizzes' },
+        { icon: BarChart2, label: 'Progress', href: '/student/progress' },
+        { icon: MessageCircle, label: 'Messages', href: '/student/messages' },
+    ];
+
+    const assignments = [
+        {
+            id: 1,
+            title: 'React Context API Implementation',
+            course: 'Advanced React Patterns',
+            dueDate: 'Tomorrow, 11:59 PM',
+            status: 'Pending',
+            score: null,
+            description: 'Implement a theme switcher using React Context API. Include tests for your implementation.'
+        },
+        {
+            id: 2,
+            title: 'Wireframe Project',
+            course: 'UI/UX Design Principles',
+            dueDate: 'Yesterday',
+            status: 'Submitted',
+            score: null,
+            description: 'Create low-fidelity wireframes for the e-commerce mobile app project.'
+        },
+        {
+            id: 3,
+            title: 'Python Data Analysis',
+            course: 'Introduction to Python',
+            dueDate: 'Last Week',
+            status: 'Graded',
+            score: '95/100',
+            description: 'Analyze the provided dataset using Pandas and generate 3 visualizations.'
+        },
+        {
+            id: 4,
+            title: 'Final Project Proposal',
+            course: 'Web Dev Bootcamp',
+            dueDate: 'Dec 01, 11:59 PM',
+            status: 'Pending',
+            score: null,
+            description: 'Submit a PDF document outlining your final project idea, tech stack, and timeline.'
+        }
+    ];
+
+    // FIXED: Removed ": string" type annotation
+    const getStatusBadge = (status) => {
+        switch (status) {
+            case 'Pending': return <Badge variant="warning">Pending</Badge>;
+            case 'Submitted': return <Badge variant="primary">Submitted</Badge>;
+            case 'Graded': return <Badge variant="success">Graded</Badge>;
+            default: return <Badge variant="neutral">{status}</Badge>;
+        }
+    };
+
+    return (
+        <DashboardLayout sidebarItems={sidebarItems} userType="student" title="Assignments">
+            <div className="space-y-6">
+                <Card className="overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-slate-50 border-b border-slate-200">
+                                    <th className="px-6 py-4 text-sm font-semibold text-slate-700">Assignment Title</th>
+                                    <th className="px-6 py-4 text-sm font-semibold text-slate-700">Course</th>
+                                    <th className="px-6 py-4 text-sm font-semibold text-slate-700">Due Date</th>
+                                    <th className="px-6 py-4 text-sm font-semibold text-slate-700">Status</th>
+                                    <th className="px-6 py-4 text-sm font-semibold text-slate-700">Score</th>
+                                    <th className="px-6 py-4 text-sm font-semibold text-slate-700">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                                {assignments.map((assignment) => (
+                                    <tr key={assignment.id} className="hover:bg-slate-50 transition-colors">
+                                        <td className="px-6 py-4">
+                                            <p className="font-medium text-slate-900">{assignment.title}</p>
+                                            <p className="text-xs text-slate-500 md:hidden">{assignment.course}</p>
+                                        </td>
+                                        <td className="px-6 py-4 text-sm text-slate-600 hidden md:table-cell">{assignment.course}</td>
+                                        <td className="px-6 py-4 text-sm text-slate-600">
+                                            <div className="flex items-center">
+                                                <Clock className="h-3 w-3 mr-1.5 text-slate-400" />
+                                                {assignment.dueDate}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">{getStatusBadge(assignment.status)}</td>
+                                        <td className="px-6 py-4 text-sm font-medium text-slate-900">
+                                            {assignment.score || '-'}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <Button size="sm" variant={assignment.status === 'Pending' ? 'primary' : 'outline'}>
+                                                {assignment.status === 'Pending' ? 'Submit' : 'View'}
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </Card>
+
+                {/* Assignment Detail View */}
+                <div className="mt-12">
+                    <h2 className="text-xl font-bold text-slate-900 mb-6">Submit Assignment</h2>
+                    <Card className="p-6">
+                        <div className="flex justify-between items-start mb-6">
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-900 mb-1">{assignments[0].title}</h3>
+                                <p className="text-sm text-slate-500">{assignments[0].course}</p>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-sm font-medium text-red-600">Due: {assignments[0].dueDate}</p>
+                                <p className="text-xs text-slate-400">100 Points</p>
+                            </div>
+                        </div>
+
+                        <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 mb-8">
+                            <h4 className="text-sm font-bold text-slate-900 mb-2">Instructions</h4>
+                            <p className="text-sm text-slate-600 leading-relaxed">
+                                {assignments[0].description}
+                                <br /><br />
+                                Please ensure your code is well-commented and follows the project style guide. Zip your project files and upload them below.
+                            </p>
+                        </div>
+
+                        <div className="space-y-6">
+                            <div className="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer">
+                                <Upload className="h-10 w-10 text-slate-400 mx-auto mb-4" />
+                                <p className="text-sm font-medium text-slate-900">Click to upload or drag and drop</p>
+                                <p className="text-xs text-slate-500 mt-1">PDF, DOCX, ZIP up to 10MB</p>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">Comments (Optional)</label>
+                                <textarea
+                                    className="w-full p-3 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none resize-none h-24"
+                                    placeholder="Add any notes for the instructor..."
+                                ></textarea>
+                            </div>
+
+                            <div className="flex justify-end space-x-4">
+                                <Button variant="outline">Save Draft</Button>
+                                <Button>Submit Assignment</Button>
+                            </div>
+                        </div>
+                    </Card>
+                </div>
+            </div>
+        </DashboardLayout>
+    );
+};
+
+export default Assignments;

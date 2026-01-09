@@ -1,0 +1,178 @@
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { GraduationCap, Mail, Lock, ArrowRight } from 'lucide-react';
+import Button from '../../components/ui/Button';
+import Input from '../../components/ui/Input';
+import Card from '../../components/ui/Card';
+
+const LoginPage = () => {
+    const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    
+    const [role, setRole] = useState('student');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        const roleParam = searchParams.get('role');
+        if (roleParam === 'teacher') {
+            setRole('teacher');
+        } else if (roleParam === 'student') {
+            setRole('student');
+        }
+    }, [searchParams]);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError('');
+        setIsLoading(true);
+
+        try {
+            const response = await fetch('http://localhost:5000/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email,
+                    password,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Invalid email or password');
+            }
+
+            // Save user data and token to localStorage
+            localStorage.setItem('userInfo', JSON.stringify(data));
+
+            // Redirect based on role
+            // Use the role from the backend response to ensure consistency
+            if (data.role === 'student') {
+                navigate('/student');
+            } else {
+                navigate('/teacher');
+            }
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+            <div className="sm:mx-auto sm:w-full sm:max-w-md">
+                <Link to="/" className="flex items-center justify-center space-x-2 mb-6">
+                    <div className="bg-primary/10 p-2 rounded-lg">
+                        <GraduationCap className="h-8 w-8 text-primary" />
+                    </div>
+                    <span className="text-2xl font-bold text-slate-900">EduSync</span>
+                </Link>
+                <h2 className="mt-6 text-center text-3xl font-bold text-slate-900">
+                    Welcome back
+                </h2>
+                <p className="mt-2 text-center text-sm text-slate-600">
+                    Sign in to your account to continue
+                </p>
+            </div>
+
+            <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+                <Card className="py-8 px-4 shadow sm:rounded-lg sm:px-10">
+                    <div className="flex rounded-md bg-slate-100 p-1 mb-6">
+                        <button
+                            type="button"
+                            onClick={() => setRole('student')}
+                            className={`flex-1 rounded-md py-2 text-sm font-medium transition-all ${role === 'student'
+                                ? 'bg-white text-slate-900 shadow-sm'
+                                : 'text-slate-500 hover:text-slate-900'
+                                }`}
+                        >
+                            Student
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setRole('teacher')}
+                            className={`flex-1 rounded-md py-2 text-sm font-medium transition-all ${role === 'teacher'
+                                ? 'bg-white text-slate-900 shadow-sm'
+                                : 'text-slate-500 hover:text-slate-900'
+                                }`}
+                        >
+                            Teacher
+                        </button>
+                    </div>
+
+                    {error && (
+                        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm text-center">
+                            {error}
+                        </div>
+                    )}
+
+                    <form className="space-y-6" onSubmit={handleSubmit}>
+                        <Input
+                            label="Email address"
+                            type="email"
+                            required
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="you@example.com"
+                        />
+
+                        <div>
+                            <Input
+                                label="Password"
+                                type="password"
+                                required
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="••••••••"
+                            />
+                            <div className="flex items-center justify-end mt-1">
+                                <div className="text-sm">
+                                    <a href="#" className="font-medium text-primary hover:text-primary-hover">
+                                        Forgot your password?
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <Button
+                            type="submit"
+                            className="w-full flex justify-center"
+                            isLoading={isLoading}
+                        >
+                            Sign in as {role === 'student' ? 'Student' : 'Teacher'} <ArrowRight className="ml-2 h-4 w-4" />
+                        </Button>
+                    </form>
+
+                    <div className="mt-6">
+                        <div className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                                <div className="w-full border-t border-slate-200" />
+                            </div>
+                            <div className="relative flex justify-center text-sm">
+                                <span className="bg-white px-2 text-slate-500">
+                                    Don't have an account?
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="mt-6">
+                            <Link to={`/signup?role=${role}`}>
+                                <Button variant="outline" className="w-full">
+                                    Create new account
+                                </Button>
+                            </Link>
+                        </div>
+                    </div>
+                </Card>
+            </div>
+        </div>
+    );
+};
+
+export default LoginPage;
