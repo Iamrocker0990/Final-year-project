@@ -6,15 +6,7 @@ import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 
 const LiveClasses = () => {
-    const sidebarItems = [
-        { icon: BookOpen, label: 'Dashboard', href: '/student' },
-        { icon: BookOpen, label: 'My Courses', href: '/student/courses' },
-        { icon: Video, label: 'Live Classes', href: '/student/live-classes' },
-        { icon: FileText, label: 'Assignments', href: '/student/assignments' },
-        { icon: Award, label: 'Quizzes', href: '/student/quizzes' },
-        { icon: BarChart2, label: 'Progress', href: '/student/progress' },
-        { icon: MessageCircle, label: 'Messages', href: '/student/messages' },
-    ];
+    // sidebarItems removed to use default from DashboardLayout
 
     const sessions = [
         {
@@ -50,7 +42,7 @@ const LiveClasses = () => {
     ];
 
     return (
-        <DashboardLayout sidebarItems={sidebarItems} userType="student" title="Live Classes">
+        <DashboardLayout userType="student" title="Live Classes">
             <div className="space-y-8">
                 {/* Live Now Section */}
                 {sessions.filter(s => s.status === 'Live').map(session => (

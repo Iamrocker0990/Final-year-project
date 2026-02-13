@@ -6,18 +6,10 @@ import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 
 const Settings = () => {
-    const sidebarItems = [
-        { icon: BookOpen, label: 'Dashboard', href: '/student' },
-        { icon: BookOpen, label: 'My Courses', href: '/student/courses' },
-        { icon: Video, label: 'Live Classes', href: '/student/live-classes' },
-        { icon: FileText, label: 'Assignments', href: '/student/assignments' },
-        { icon: Award, label: 'Quizzes', href: '/student/quizzes' },
-        { icon: BarChart2, label: 'Progress', href: '/student/progress' },
-        { icon: MessageCircle, label: 'Messages', href: '/student/messages' },
-    ];
+    // sidebarItems removed to use default from DashboardLayout
 
     return (
-        <DashboardLayout sidebarItems={sidebarItems} userType="student" title="Settings">
+        <DashboardLayout userType="student" title="Settings">
             <div className="max-w-3xl mx-auto space-y-8">
                 {/* Profile Settings */}
                 <Card className="p-8">

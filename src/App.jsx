@@ -31,23 +31,7 @@ import TeacherMessages from './pages/teacher/TeacherMessages';
 
 // Layout
 import PageTransition from './components/layout/PageTransition';
-
-/* =======================
-   Protected Route Wrapper
-======================= */
-const ProtectedRoute = ({ children, role }) => {
-  const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-
-  if (!userInfo) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (role && userInfo.role !== role) {
-    return <Navigate to="/" replace />;
-  }
-
-  return children;
-};
+import PrivateRoute from './components/Routing/PrivateRoute';
 
 /* =======================
         App
@@ -88,204 +72,136 @@ function App() {
         />
 
         {/* ---------- Student Routes ---------- */}
-        <Route
-          path="/student"
-          element={
-            <ProtectedRoute role="student">
-              <PageTransition>
-                <StudentDashboard />
-              </PageTransition>
-            </ProtectedRoute>
-          }
-        />
+        <Route element={<PrivateRoute allowedRoles={['student']} />}>
+          <Route
+            path="/student"
+            element={<StudentDashboard />}
+          />
 
-        <Route
-          path="/student/courses"
-          element={
-            <ProtectedRoute role="student">
-              <PageTransition>
-                <MyCourses />
-              </PageTransition>
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/student/courses"
+            element={<MyCourses />}
+          />
 
-        <Route
-          path="/student/courses/:id"
-          element={
-            <ProtectedRoute role="student">
-              <PageTransition>
-                <CourseDetail />
-              </PageTransition>
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/student/courses/:id"
+            element={<CourseDetail />}
+          />
 
-        <Route
-          path="/student/assignments"
-          element={
-            <ProtectedRoute role="student">
-              <PageTransition>
-                <Assignments />
-              </PageTransition>
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/student/assignments"
+            element={<Assignments />}
+          />
 
-        <Route
-          path="/student/quizzes"
-          element={
-            <ProtectedRoute role="student">
-              <PageTransition>
-                <Quizzes />
-              </PageTransition>
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/student/quizzes"
+            element={<Quizzes />}
+          />
 
-        <Route
-          path="/student/live-classes"
-          element={
-            <ProtectedRoute role="student">
-              <PageTransition>
-                <LiveClasses />
-              </PageTransition>
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/student/live-classes"
+            element={<LiveClasses />}
+          />
 
-        <Route
-          path="/student/progress"
-          element={
-            <ProtectedRoute role="student">
-              <PageTransition>
-                <ProgressReport />
-              </PageTransition>
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/student/progress"
+            element={<ProgressReport />}
+          />
 
-        <Route
-          path="/student/messages"
-          element={
-            <ProtectedRoute role="student">
-              <PageTransition>
-                <Messages />
-              </PageTransition>
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/student/messages"
+            element={<Messages />}
+          />
 
-        <Route
-          path="/student/settings"
-          element={
-            <ProtectedRoute role="student">
-              <PageTransition>
-                <Settings />
-              </PageTransition>
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/student/settings"
+            element={<Settings />}
+          />
+        </Route>
 
         {/* ---------- Teacher Routes ---------- */}
-        <Route
-          path="/teacher"
-          element={
-            <ProtectedRoute role="teacher">
+        <Route element={<PrivateRoute allowedRoles={['teacher']} />}>
+          <Route
+            path="/teacher"
+            element={
               <PageTransition>
                 <TeacherDashboard />
               </PageTransition>
-            </ProtectedRoute>
-          }
-        />
+            }
+          />
 
-        <Route
-          path="/teacher/courses"
-          element={
-            <ProtectedRoute role="teacher">
+          <Route
+            path="/teacher/courses"
+            element={
               <PageTransition>
                 <TeacherCourses />
               </PageTransition>
-            </ProtectedRoute>
-          }
-        />
+            }
+          />
 
-        <Route
-          path="/teacher/create-course"
-          element={
-            <ProtectedRoute role="teacher">
+          <Route
+            path="/teacher/create-course"
+            element={
               <PageTransition>
                 <CreateCourse />
               </PageTransition>
-            </ProtectedRoute>
-          }
-        />
+            }
+          />
 
-        <Route
-          path="/teacher/upload"
-          element={
-            <ProtectedRoute role="teacher">
+          <Route
+            path="/teacher/upload"
+            element={
               <PageTransition>
                 <UploadContent />
               </PageTransition>
-            </ProtectedRoute>
-          }
-        />
+            }
+          />
 
-        <Route
-          path="/teacher/assignments"
-          element={
-            <ProtectedRoute role="teacher">
+          <Route
+            path="/teacher/assignments"
+            element={
               <PageTransition>
                 <TeacherAssignments />
               </PageTransition>
-            </ProtectedRoute>
-          }
-        />
+            }
+          />
 
-        <Route
-          path="/teacher/quizzes"
-          element={
-            <ProtectedRoute role="teacher">
+          <Route
+            path="/teacher/quizzes"
+            element={
               <PageTransition>
                 <TeacherQuizzes />
               </PageTransition>
-            </ProtectedRoute>
-          }
-        />
+            }
+          />
 
-        <Route
-          path="/teacher/students"
-          element={
-            <ProtectedRoute role="teacher">
+          <Route
+            path="/teacher/students"
+            element={
               <PageTransition>
                 <StudentsList />
               </PageTransition>
-            </ProtectedRoute>
-          }
-        />
+            }
+          />
 
-        <Route
-          path="/teacher/reports"
-          element={
-            <ProtectedRoute role="teacher">
+          <Route
+            path="/teacher/reports"
+            element={
               <PageTransition>
                 <Reports />
               </PageTransition>
-            </ProtectedRoute>
-          }
-        />
+            }
+          />
 
-        <Route
-          path="/teacher/messages"
-          element={
-            <ProtectedRoute role="teacher">
+          <Route
+            path="/teacher/messages"
+            element={
               <PageTransition>
                 <TeacherMessages />
               </PageTransition>
-            </ProtectedRoute>
-          }
-        />
+            }
+          />
+        </Route>
 
         {/* ---------- Fallback ---------- */}
         <Route path="*" element={<Navigate to="/" replace />} />

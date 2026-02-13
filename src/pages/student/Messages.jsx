@@ -5,16 +5,7 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 
 const Messages = () => {
-    const sidebarItems = [
-        { icon: BookOpen, label: 'Dashboard', href: '/student' },
-        { icon: BookOpen, label: 'My Courses', href: '/student/courses' },
-        { icon: Video, label: 'Live Classes', href: '/student/live-classes' },
-        { icon: FileText, label: 'Assignments', href: '/student/assignments' },
-        { icon: Award, label: 'Quizzes', href: '/student/quizzes' },
-        { icon: BarChart2, label: 'Progress', href: '/student/progress' },
-        { icon: MessageCircle, label: 'Messages', href: '/student/messages' },
-        { icon: Settings, label: 'Settings', href: '/student/settings' },
-    ];
+    // sidebarItems removed to use default from DashboardLayout
 
     // FIXED: Removed <'bot' | 'teacher'>
     const [activeChat, setActiveChat] = useState('bot');
@@ -29,12 +20,12 @@ const Messages = () => {
         e.preventDefault();
         if (!message.trim()) return;
 
-        const newMessage = { 
-            sender: 'user', 
-            text: message, 
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+        const newMessage = {
+            sender: 'user',
+            text: message,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
-        
+
         setChatHistory([...chatHistory, newMessage]);
         setMessage('');
 
@@ -51,7 +42,7 @@ const Messages = () => {
     };
 
     return (
-        <DashboardLayout sidebarItems={sidebarItems} userType="student" title="Messages & Chatbot">
+        <DashboardLayout userType="student" title="Messages & Chatbot">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[calc(100vh-10rem)]">
                 {/* Chat List */}
                 <Card className="lg:col-span-1 flex flex-col h-full overflow-hidden">

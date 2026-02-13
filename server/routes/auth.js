@@ -51,24 +51,32 @@ router.post('/register', async (req, res) => {
 // @route   POST /api/auth/login
 // @access  Public
 router.post('/login', async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password, role } = req.body;
 
     try {
         const user = await User.findOne({ email });
 
-        if (user && (await user.matchPassword(password))) {
-            res.json({
-                _id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                token: generateToken(user._id),
-            });
-        } else {
-            res.status(401).json({ message: 'Invalid email or password' });
+        if (!user || !(await user.matchPassword(password))) {
+            return res.status(401).json({ message: 'Invalid email or password' });
         }
+
+        // If a role was provided by the client (student/teacher tab),
+        // enforce that it matches the actual user role.
+        if (role && user.role !== role) {
+            return res.status(401).json({
+                message: `Please sign in as a ${user.role} instead.`,
+            });
+        }
+
+        res.json({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            token: generateToken(user._id),
+        });
     } catch (error) {
-        console.error("🔥 REGISTER ERROR FULL:", error)
+        console.error("🔥 LOGIN ERROR FULL:", error);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });

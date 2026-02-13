@@ -1,44 +1,129 @@
-import React, { useState } from 'react';
-import { BookOpen, Users, FileText, Award, BarChart2, MessageCircle, Plus, Upload, Video, File, Link as LinkIcon, Type, Trash } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { BookOpen, Users, FileText, Award, BarChart2, MessageCircle, Plus, Upload, Video, Link as LinkIcon, Trash } from 'lucide-react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
-
+import axios from 'axios';
 import { useDropzone } from 'react-dropzone';
+import { useNavigate } from 'react-router-dom';
 
 const UploadContent = () => {
-    const sidebarItems = [
-        { icon: BookOpen, label: 'Dashboard', href: '/teacher' },
-        { icon: BookOpen, label: 'My Courses', href: '/teacher/courses' },
-        { icon: Plus, label: 'Create Course', href: '/teacher/create-course' },
-        { icon: Upload, label: 'Upload Content', href: '/teacher/upload' },
-        { icon: FileText, label: 'Assignments', href: '/teacher/assignments' },
-        { icon: Award, label: 'Quizzes', href: '/teacher/quizzes' },
-        { icon: Users, label: 'Students', href: '/teacher/students' },
-        { icon: BarChart2, label: 'Reports', href: '/teacher/reports' },
-        { icon: MessageCircle, label: 'Messages', href: '/teacher/messages' },
-    ];
+    const navigate = useNavigate();
+    // sidebarItems removed to use default from DashboardLayout
 
+    const [courses, setCourses] = useState([]);
     const [selectedCourse, setSelectedCourse] = useState('');
-    const [modules, setModules] = useState([
-        { title: 'Module 1: Introduction', lessons: ['Welcome to the Course', 'Setup Environment'] }
-    ]);
-    
-    // FIXED: Removed <File | null>
+    const [moduleTitle, setModuleTitle] = useState('Module 1');
+    const [lessonTitle, setLessonTitle] = useState('');
+    const [videoUrl, setVideoUrl] = useState('');
     const [uploadedFile, setUploadedFile] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
 
-    // FIXED: Removed : File[]
     const onDrop = React.useCallback((acceptedFiles) => {
         if (acceptedFiles.length > 0) {
             setUploadedFile(acceptedFiles[0]);
+            setVideoUrl('');
         }
     }, []);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, accept: { 'video/*': [] }, maxFiles: 1 });
 
+    useEffect(() => {
+        const fetchCourses = async () => {
+            try {
+                const userInfoString = localStorage.getItem('userInfo');
+                if (!userInfoString) {
+                    navigate('/login');
+                    return;
+                }
+                const { token, role } = JSON.parse(userInfoString);
+                if (role !== 'teacher' && role !== 'admin') {
+                    navigate('/student');
+                    return;
+                }
+                const { data } = await axios.get('http://localhost:5000/api/courses/mine', {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                setCourses(data);
+            } catch (err) {
+                console.error(err);
+                setError('Failed to load your courses');
+            }
+        };
+        fetchCourses();
+    }, [navigate]);
+
+    const handleSubmit = async () => {
+        try {
+            setError('');
+            setSuccess('');
+            setIsSubmitting(true);
+
+            if (!selectedCourse) {
+                setError('Select a course');
+                return;
+            }
+            if (!lessonTitle.trim()) {
+                setError('Lesson title is required');
+                return;
+            }
+
+            const userInfoString = localStorage.getItem('userInfo');
+            if (!userInfoString) {
+                navigate('/login');
+                return;
+            }
+            const { token } = JSON.parse(userInfoString);
+
+            let contentUrl = videoUrl;
+
+            if (!contentUrl && uploadedFile) {
+                const fd = new FormData();
+                fd.append('video', uploadedFile);
+                const uploadRes = await axios.post('http://localhost:5000/api/courses/upload/video', fd, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+                contentUrl = uploadRes.data.url;
+            }
+
+            if (!contentUrl) {
+                setError('Upload a video or provide a video URL');
+                return;
+            }
+
+            await axios.post(
+                `http://localhost:5000/api/courses/${selectedCourse}/lessons`,
+                {
+                    moduleTitle: moduleTitle || 'Module 1',
+                    lessonTitle,
+                    type: 'video',
+                    content: contentUrl,
+                    duration: '',
+                },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            setSuccess('Lesson added successfully');
+            setLessonTitle('');
+            setVideoUrl('');
+            setUploadedFile(null);
+        } catch (err) {
+            console.error(err);
+            const msg = err.response?.data?.message || 'Failed to add lesson';
+            setError(msg);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     return (
-        <DashboardLayout sidebarItems={sidebarItems} userType="teacher" title="Upload Content">
+        <DashboardLayout userType="teacher" title="Upload Content">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Left Panel: Course Structure */}
                 <div className="lg:col-span-1 space-y-6">
@@ -50,37 +135,16 @@ const UploadContent = () => {
                             onChange={(e) => setSelectedCourse(e.target.value)}
                         >
                             <option value="">Select a course...</option>
-                            <option value="1">Advanced React Patterns</option>
-                            <option value="2">UI/UX Design Principles</option>
+                            {courses.map((course) => (
+                                <option key={course._id} value={course._id}>
+                                    {course.title}
+                                </option>
+                            ))}
                         </select>
 
                         {selectedCourse && (
-                            <div>
-                                <div className="flex justify-between items-center mb-4">
-                                    <h4 className="font-bold text-slate-700 text-sm">Course Structure</h4>
-                                    <button className="text-primary text-xs font-medium hover:underline">+ Add Module</button>
-                                </div>
-                                <div className="space-y-4">
-                                    {modules.map((module, mIndex) => (
-                                        <div key={mIndex} className="border border-slate-200 rounded-lg overflow-hidden">
-                                            <div className="bg-slate-50 p-3 border-b border-slate-200 flex justify-between items-center">
-                                                <span className="font-medium text-sm text-slate-900">{module.title}</span>
-                                                <button className="text-slate-400 hover:text-red-500"><Trash className="h-3 w-3" /></button>
-                                            </div>
-                                            <div className="p-2 space-y-1">
-                                                {module.lessons.map((lesson, lIndex) => (
-                                                    <div key={lIndex} className="p-2 text-sm text-slate-600 hover:bg-slate-50 rounded cursor-pointer flex items-center">
-                                                        <Video className="h-3 w-3 mr-2 text-slate-400" />
-                                                        {lesson}
-                                                    </div>
-                                                ))}
-                                                <button className="w-full text-left p-2 text-xs text-primary hover:bg-primary/5 rounded font-medium">
-                                                    + Add Lesson
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
+                            <div className="text-sm text-slate-600">
+                                Lessons will be added to this course.
                             </div>
                         )}
                     </Card>
@@ -94,14 +158,20 @@ const UploadContent = () => {
                         <div className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Module</label>
-                                    <select className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none bg-white">
-                                        <option>Module 1: Introduction</option>
-                                        <option>Create New Module...</option>
-                                    </select>
+                                    <Input
+                                        label="Module Title"
+                                        placeholder="e.g., Module 1: Introduction"
+                                        value={moduleTitle}
+                                        onChange={(e) => setModuleTitle(e.target.value)}
+                                    />
                                 </div>
                                 <div>
-                                    <Input label="Lesson Title" placeholder="e.g., Understanding Hooks" />
+                                    <Input
+                                        label="Lesson Title"
+                                        placeholder="e.g., Understanding Hooks"
+                                        value={lessonTitle}
+                                        onChange={(e) => setLessonTitle(e.target.value)}
+                                    />
                                 </div>
                             </div>
 
@@ -110,11 +180,9 @@ const UploadContent = () => {
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                     {[
                                         { icon: Video, label: 'Video' },
-                                        { icon: File, label: 'Document' },
-                                        { icon: LinkIcon, label: 'Link' },
-                                        { icon: Type, label: 'Text' },
+                                        { icon: LinkIcon, label: 'Link (optional fallback)' },
                                     ].map((type, index) => (
-                                        <button
+                                        <div
                                             key={index}
                                             className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${index === 0
                                                 ? 'border-primary bg-primary/5 text-primary'
@@ -122,8 +190,8 @@ const UploadContent = () => {
                                                 }`}
                                         >
                                             <type.icon className="h-6 w-6 mb-2" />
-                                            <span className="text-sm font-medium">{type.label}</span>
-                                        </button>
+                                            <span className="text-sm font-medium text-center">{type.label}</span>
+                                        </div>
                                     ))}
                                 </div>
                             </div>
@@ -157,32 +225,29 @@ const UploadContent = () => {
                                 </div>
                             )}
 
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1.5">Description (Optional)</label>
-                                <textarea
-                                    className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none h-24 resize-none"
-                                    placeholder="Add notes or instructions for this lesson..."
-                                ></textarea>
-                            </div>
+                            <Input
+                                label="Or paste a hosted video URL (optional)"
+                                placeholder="https://cdn.example.com/video.mp4"
+                                value={videoUrl}
+                                onChange={(e) => {
+                                    setVideoUrl(e.target.value);
+                                    setUploadedFile(null);
+                                }}
+                            />
 
-                            <div>
-                                <h3 className="text-sm font-bold text-slate-900 mb-3">Attachments</h3>
-                                <div className="space-y-3">
-                                    <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
-                                        <div className="flex items-center">
-                                            <File className="h-4 w-4 mr-3 text-slate-400" />
-                                            <span className="text-sm text-slate-700">Lesson_Slides.pdf</span>
-                                        </div>
-                                        <button className="text-slate-400 hover:text-red-500"><Trash className="h-4 w-4" /></button>
-                                    </div>
-                                    <Button variant="outline" size="sm" className="w-full border-dashed">
-                                        <Plus className="h-4 w-4 mr-2" /> Add Resource
-                                    </Button>
+                            {error && (
+                                <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">
+                                    {error}
                                 </div>
-                            </div>
+                            )}
+                            {success && (
+                                <div className="p-3 rounded-lg bg-green-50 border border-green-200 text-green-700 text-sm">
+                                    {success}
+                                </div>
+                            )}
 
                             <div className="flex justify-end pt-6 border-t border-slate-100">
-                                <Button>Add Lesson to Course</Button>
+                                <Button onClick={handleSubmit} isLoading={isSubmitting}>Add Lesson to Course</Button>
                             </div>
                         </div>
                     </Card>

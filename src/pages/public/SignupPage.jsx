@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { GraduationCap, ArrowRight, User, BookOpen } from 'lucide-react';
+import { motion } from 'framer-motion';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Card from '../../components/ui/Card';
@@ -18,13 +19,19 @@ const SignupPage = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
+        const userInfo = localStorage.getItem('userInfo');
+        if (userInfo) {
+            const { role } = JSON.parse(userInfo);
+            navigate(role === 'student' ? '/student' : '/teacher');
+        }
+
         const roleParam = searchParams.get('role');
         if (roleParam === 'teacher') {
             setRole('teacher');
         } else {
             setRole('student');
         }
-    }, [searchParams]);
+    }, [searchParams, navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -56,10 +63,8 @@ const SignupPage = () => {
                 throw new Error(data.message || 'Something went wrong');
             }
 
-            // Save user data and token to localStorage
             localStorage.setItem('userInfo', JSON.stringify(data));
 
-            // Redirect based on role
             if (data.role === 'student') {
                 navigate('/student');
             } else {
@@ -73,69 +78,61 @@ const SignupPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-            <div className="sm:mx-auto sm:w-full sm:max-w-md">
-                <Link to="/" className="flex items-center justify-center space-x-2 mb-6">
-                    <div className="bg-primary/10 p-2 rounded-lg">
+        <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+            <motion.div 
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="sm:mx-auto sm:w-full sm:max-w-md"
+            >
+                <Link to="/" className="flex items-center justify-center space-x-3 mb-8 group">
+                    <div className="bg-primary/10 p-2.5 rounded-2xl group-hover:rotate-12 transition-transform duration-300">
                         <GraduationCap className="h-8 w-8 text-primary" />
                     </div>
-                    <span className="text-2xl font-bold text-slate-900">EduSync</span>
+                    <span className="text-3xl font-extrabold text-slate-900 tracking-tight">EduSync</span>
                 </Link>
-                <h2 className="mt-6 text-center text-3xl font-extrabold text-slate-900">
-                    Create your account
+                <h2 className="text-center text-3xl font-extrabold text-slate-900">
+                    Create Account
                 </h2>
-                <p className="mt-2 text-center text-sm text-slate-600">
-                    Start your learning journey with EduSync
+                <p className="mt-3 text-center text-slate-500 font-medium">
+                    Start your learning journey today
                 </p>
-            </div>
+            </motion.div>
 
-            <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-                <Card className="py-8 px-4 shadow-xl sm:rounded-2xl sm:px-10 border-0">
-                    <div className="mb-8">
-                        <div className="flex items-center justify-between mb-4">
-                            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Step 1: Choose Role</span>
-                            <span className="h-px w-12 bg-slate-100"></span>
-                            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Step 2: Details</span>
-                        </div>
-                        <div className="flex gap-4">
+            <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.1 }}
+                className="mt-10 sm:mx-auto sm:w-full sm:max-w-md"
+            >
+                <Card className="py-10 px-6 sm:px-12 border-none shadow-2xl shadow-slate-200/50">
+                    <div className="flex gap-4 mb-8">
+                        {[
+                            { id: 'student', icon: User, label: 'Student' },
+                            { id: 'teacher', icon: BookOpen, label: 'Teacher' }
+                        ].map((r) => (
                             <button
+                                key={r.id}
                                 type="button"
-                                onClick={() => setRole('student')}
-                                className={`flex-1 flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${role === 'student'
-                                        ? 'border-primary bg-primary/5 text-primary'
-                                        : 'border-slate-100 bg-slate-50 text-slate-500 hover:border-slate-200'
-                                    }`}
+                                onClick={() => setRole(r.id)}
+                                className={`flex-1 flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all ${role === r.id
+                                    ? 'border-primary bg-primary/5 text-primary'
+                                    : 'border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-200'
+                                }`}
                             >
-                                <User className={`h-6 w-6 mb-2 ${role === 'student' ? 'text-primary' : 'text-slate-400'}`} />
-                                <span className="font-semibold text-sm">Student</span>
+                                <r.icon className="h-6 w-6 mb-2" />
+                                <span className="font-bold text-xs uppercase tracking-widest">{r.label}</span>
                             </button>
-                            <button
-                                type="button"
-                                onClick={() => setRole('teacher')}
-                                className={`flex-1 flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${role === 'teacher'
-                                        ? 'border-primary bg-primary/5 text-primary'
-                                        : 'border-slate-100 bg-slate-50 text-slate-500 hover:border-slate-200'
-                                    }`}
-                            >
-                                <BookOpen className={`h-6 w-6 mb-2 ${role === 'teacher' ? 'text-primary' : 'text-slate-400'}`} />
-                                <span className="font-semibold text-sm">Teacher</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="relative mb-8">
-                        <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-slate-100" />
-                        </div>
-                        <div className="relative flex justify-center text-xs uppercase">
-                            <span className="bg-white px-4 text-slate-400 font-medium">Account Details</span>
-                        </div>
+                        ))}
                     </div>
 
                     {error && (
-                        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">
+                        <motion.div 
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm font-medium"
+                        >
                             {error}
-                        </div>
+                        </motion.div>
                     )}
 
                     <form className="space-y-5" onSubmit={handleSubmit}>
@@ -144,19 +141,19 @@ const SignupPage = () => {
                             type="text"
                             required
                             placeholder="John Doe"
-                            autoComplete="name"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
+                            className="h-12"
                         />
 
                         <Input
                             label="Email Address"
                             type="email"
                             required
-                            placeholder="name@company.com"
-                            autoComplete="email"
+                            placeholder="name@example.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
+                            className="h-12"
                         />
 
                         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -165,58 +162,42 @@ const SignupPage = () => {
                                 type="password"
                                 required
                                 placeholder="••••••••"
-                                autoComplete="new-password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
+                                className="h-12"
                             />
 
                             <Input
-                                label="Confirm Password"
+                                label="Confirm"
                                 type="password"
                                 required
                                 placeholder="••••••••"
-                                autoComplete="new-password"
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
+                                className="h-12"
                             />
-                        </div>
-
-                        <div className="flex items-start">
-                            <div className="flex items-center h-5">
-                                <input
-                                    id="terms"
-                                    name="terms"
-                                    type="checkbox"
-                                    required
-                                    className="h-4 w-4 text-primary focus:ring-primary border-slate-300 rounded cursor-pointer"
-                                />
-                            </div>
-                            <div className="ml-3 text-sm">
-                                <label htmlFor="terms" className="font-medium text-slate-700 cursor-pointer">
-                                    I agree to the <a href="#" className="text-primary hover:text-primary-hover underline decoration-primary/30 underline-offset-4">Terms</a> and <a href="#" className="text-primary hover:text-primary-hover underline decoration-primary/30 underline-offset-4">Privacy Policy</a>
-                                </label>
-                            </div>
                         </div>
 
                         <Button
                             type="submit"
-                            className="w-full flex justify-center py-3 text-lg"
+                            className="w-full h-14 text-lg shadow-lg shadow-primary/20 group mt-4"
                             isLoading={isLoading}
                         >
-                            Create {role === 'student' ? 'Student' : 'Teacher'} Account <ArrowRight className="ml-2 h-5 w-5" />
+                            Create {role.charAt(0).toUpperCase() + role.slice(1)} Account
+                            <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                         </Button>
                     </form>
 
-                    <div className="mt-8 pt-6 border-t border-slate-100 text-center">
-                        <p className="text-sm text-slate-600">
+                    <div className="mt-10 pt-8 border-t border-slate-100 text-center">
+                        <p className="text-sm text-slate-500 font-medium">
                             Already have an account?{' '}
-                            <Link to={`/login?role=${role}`} className="font-semibold text-primary hover:text-primary-hover underline decoration-primary/30 underline-offset-4 transition-all">
-                                Sign in here
+                            <Link to={`/login?role=${role}`} className="text-primary font-bold hover:underline">
+                                Sign in instead
                             </Link>
                         </p>
                     </div>
                 </Card>
-            </div>
+            </motion.div>
         </div>
     );
 };
