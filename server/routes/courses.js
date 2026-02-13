@@ -1,33 +1,98 @@
+// server/routes/courses.js
 const express = require('express');
 const router = express.Router();
-const Course = require('../models/Course');
 const { protect, teacher } = require('../middleware/auth');
+const Course = require('../models/Course');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// Ensure upload directory exists
+const uploadDir = path.join(__dirname, '..', 'uploads', 'videos');
+fs.mkdirSync(uploadDir, { recursive: true });
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, uploadDir);
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+        const ext = path.extname(file.originalname) || '.mp4';
+        cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
+    }
+});
+
+const upload = multer({
+    storage,
+    limits: { fileSize: 2 * 1024 * 1024 * 1024 }, // 2GB
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith('video/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only video uploads are allowed'));
+        }
+    }
+});
 
 // @desc    Get all courses
 // @route   GET /api/courses
 // @access  Public
 router.get('/', async (req, res) => {
     try {
-        const courses = await Course.find({}).populate('instructor', 'name');
+        // Populate specific fields to keep the response light
+        const courses = await Course.find({})
+            .populate('instructor', 'name email')
+            .select('title description thumbnail price instructor createdAt');
         res.json(courses);
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(500).json({ message: 'Server Error' });
     }
 });
 
-// @desc    Get single course
+// @desc    Get courses owned by the logged-in teacher
+// @route   GET /api/courses/mine
+// @access  Private/Teacher
+router.get('/mine', protect, teacher, async (req, res) => {
+    try {
+        const courses = await Course.find({ instructor: req.user._id })
+            .select('title description thumbnail createdAt');
+        res.json(courses);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
+
+// @desc    Get single course by ID
 // @route   GET /api/courses/:id
 // @access  Public
 router.get('/:id', async (req, res) => {
     try {
-        const course = await Course.findById(req.params.id).populate('instructor', 'name');
+        const course = await Course.findById(req.params.id)
+            .populate('instructor', 'name avatar');
+        
         if (course) {
             res.json(course);
         } else {
             res.status(404).json({ message: 'Course not found' });
         }
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
+
+// @desc    Upload a video file and return its URL
+// @route   POST /api/courses/upload/video
+// @access  Private/Teacher
+router.post('/upload/video', protect, teacher, upload.single('video'), (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'No video file uploaded' });
+        }
+        const url = `${req.protocol}://${req.get('host')}/uploads/videos/${req.file.filename}`;
+        res.status(201).json({ url });
+    } catch (error) {
+        res.status(500).json({ message: error.message || 'Upload failed' });
     }
 });
 
@@ -35,77 +100,66 @@ router.get('/:id', async (req, res) => {
 // @route   POST /api/courses
 // @access  Private/Teacher
 router.post('/', protect, teacher, async (req, res) => {
-    const { title, description, category, level, price, thumbnail } = req.body;
-
     try {
+        // We expect the frontend to send this data
+        const { title, description, thumbnail, price } = req.body;
+
         const course = new Course({
             title,
             description,
-            category,
-            level,
+            thumbnail, // This will be the Firebase Image URL
             price,
-            thumbnail,
-            instructor: req.user._id,
-            modules: [],
+            instructor: req.user._id, // Get ID from the logged-in user
+            modules: [] // Start with empty modules
         });
 
         const createdCourse = await course.save();
         res.status(201).json(createdCourse);
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
+        console.error(error);
+        res.status(400).json({ message: 'Invalid course data' });
     }
 });
 
-// @desc    Update a course
-// @route   PUT /api/courses/:id
+// @desc    Add a lesson to a course (Simplest way to add content)
+// @route   POST /api/courses/:id/lessons
 // @access  Private/Teacher
-router.put('/:id', protect, teacher, async (req, res) => {
-    const { title, description, category, level, price, thumbnail } = req.body;
-
+router.post('/:id/lessons', protect, teacher, async (req, res) => {
     try {
+        const { moduleTitle, lessonTitle, type, content, duration } = req.body;
         const course = await Course.findById(req.params.id);
 
         if (course) {
+            // Check if user is the course owner
             if (course.instructor.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
                 return res.status(401).json({ message: 'Not authorized to update this course' });
             }
 
-            course.title = title || course.title;
-            course.description = description || course.description;
-            course.category = category || course.category;
-            course.level = level || course.level;
-            course.price = price || course.price;
-            course.thumbnail = thumbnail || course.thumbnail;
+            // Simple logic: If module doesn't exist, create it. 
+            // If it exists, add lesson to it.
+            // For MVP, we will just Create a NEW Module for every upload to keep it simple.
+            
+            const newLesson = {
+                title: lessonTitle,
+                type: type, // 'video', 'document', etc.
+                content: content, // The Firebase URL
+                duration: duration
+            };
 
-            const updatedCourse = await course.save();
-            res.json(updatedCourse);
+            const newModule = {
+                title: moduleTitle || "Chapter 1",
+                lessons: [newLesson]
+            };
+
+            course.modules.push(newModule);
+            await course.save();
+            
+            res.status(201).json({ message: 'Lesson added' });
         } else {
             res.status(404).json({ message: 'Course not found' });
         }
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
-    }
-});
-
-// @desc    Delete a course
-// @route   DELETE /api/courses/:id
-// @access  Private/Teacher
-router.delete('/:id', protect, teacher, async (req, res) => {
-    try {
-        const course = await Course.findById(req.params.id);
-
-        if (course) {
-            if (course.instructor.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
-                return res.status(401).json({ message: 'Not authorized to delete this course' });
-            }
-
-            await course.deleteOne();
-            res.json({ message: 'Course removed' });
-        } else {
-            res.status(404).json({ message: 'Course not found' });
-        }
-    } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(400).json({ message: 'Error adding lesson' });
     }
 });
 
