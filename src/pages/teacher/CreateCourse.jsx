@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { BookOpen, Users, FileText, Award, BarChart2, MessageCircle, Plus, Upload, Image as ImageIcon, Save, ArrowLeft, Loader } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
+import courseService from '../../services/courseService'; // Import service
 
 const CreateCourse = () => {
     const navigate = useNavigate();
@@ -49,15 +49,24 @@ const CreateCourse = () => {
 
         try {
             // A. Check for Token (Authentication)
+            // Token check is now handled by api.js interceptor, but user check is good for role validation
             const userInfoString = localStorage.getItem('userInfo');
             if (!userInfoString) {
                 alert("You are not logged in!");
                 navigate('/login');
                 return;
             }
-            const { token } = JSON.parse(userInfoString);
+            // Optional: User role check
+            const user = JSON.parse(userInfoString);
+            if (user.role !== 'teacher' && user.role !== 'admin') {
+                alert("Only teachers can create courses.");
+                return;
+            }
+
 
             // B. Upload Image to Cloudinary (If an image was selected)
+            // Ideally this should also be moved to a service or backend route
+            // For now, keeping it here to minimize storage complexity on backend
             let thumbnailUrl = '';
             if (thumbnailFile) {
                 const imageFormData = new FormData();
@@ -65,45 +74,36 @@ const CreateCourse = () => {
                 imageFormData.append("upload_preset", UPLOAD_PRESET);
                 imageFormData.append("cloud_name", CLOUD_NAME);
 
-                // Send directly to Cloudinary API
+                // Send directly to Cloudinary API (keep axios here as it's external)
                 const res = await axios.post(
                     `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
                     imageFormData
                 );
 
-                thumbnailUrl = res.data.secure_url; // This is the public link we need!
+                thumbnailUrl = res.data.secure_url;
                 console.log("Image uploaded to Cloudinary:", thumbnailUrl);
             }
 
-            // C. Prepare Data for Backend
-            // We map our form fields to what the Node.js backend expects
+            // C. Prepare Data for Service
             const courseData = {
                 title: formData.title,
                 description: formData.description || formData.shortDescription,
                 price: formData.price,
-                thumbnail: thumbnailUrl, // sending the Cloudinary URL
-                // Extra fields for future backend updates
+                thumbnail: thumbnailUrl,
                 category: formData.category,
                 level: formData.level,
                 duration: formData.duration
             };
 
-            // D. Send Data to Node.js Backend
-            const config = {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-            };
+            // D. Use Service
+            await courseService.createCourse(courseData);
 
-            await axios.post('http://localhost:5000/api/courses', courseData, config);
-
-            alert('Course Published Successfully!');
-            navigate('/teacher/courses'); // Redirect to "My Courses" page
+            alert('Course Submitted for Review!');
+            navigate('/teacher/courses');
 
         } catch (error) {
             console.error("Error creating course:", error);
-            const errorMsg = error.response?.data?.message || 'Failed to create course. Check console for details.';
+            const errorMsg = error.response?.data?.message || 'Failed to create course.';
             alert(errorMsg);
         } finally {
             setIsLoading(false);

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import courseService from '../../services/courseService'; // Import service
 import { BookOpen, Users, FileText, Award, BarChart2, MessageCircle, Plus, Upload, MoreVertical, Edit, Trash, Eye } from 'lucide-react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Card from '../../components/ui/Card';
@@ -9,44 +10,33 @@ import Badge from '../../components/ui/Badge';
 const TeacherCourses = () => {
     // sidebarItems removed to use default from DashboardLayout
 
-    const courses = [
-        {
-            id: 1,
-            title: 'Advanced React Patterns',
-            category: 'Programming',
-            students: 85,
-            status: 'Published',
-            lastUpdated: '2 days ago',
-            image: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?auto=format&fit=crop&w=800&q=80'
-        },
-        {
-            id: 2,
-            title: 'UI/UX Design Principles',
-            category: 'Design',
-            students: 65,
-            status: 'Published',
-            lastUpdated: '1 week ago',
-            image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?auto=format&fit=crop&w=800&q=80'
-        },
-        {
-            id: 3,
-            title: 'Introduction to Python',
-            category: 'Programming',
-            students: 92,
-            status: 'Published',
-            lastUpdated: '3 days ago',
-            image: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&w=800&q=80'
-        },
-        {
-            id: 4,
-            title: 'Machine Learning Basics',
-            category: 'Data Science',
-            students: 0,
-            status: 'Draft',
-            lastUpdated: 'Just now',
-            image: 'https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?auto=format&fit=crop&w=800&q=80'
-        }
-    ];
+    const [courses, setCourses] = React.useState([]);
+    const [loading, setLoading] = React.useState(true);
+
+    React.useEffect(() => {
+        const fetchCourses = async () => {
+            try {
+                const data = await courseService.getTeacherCourses();
+                // Map backend data to UI format if needed
+                const formattedCourses = data.map(course => ({
+                    id: course._id,
+                    title: course.title,
+                    category: course.description?.substring(0, 20) + '...', // Placeholder if category isn't in backend yet
+                    students: 0, // Placeholder
+                    status: course.status.charAt(0).toUpperCase() + course.status.slice(1), // 'pending' -> 'Pending'
+                    lastUpdated: new Date(course.createdAt).toLocaleDateString(),
+                    image: course.thumbnail || 'https://via.placeholder.com/150'
+                }));
+                setCourses(formattedCourses);
+            } catch (error) {
+                console.error("Failed to fetch courses", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchCourses();
+    }, []);
 
     return (
         <DashboardLayout userType="teacher" title="My Courses">

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import authService from '../../services/authService';
 import { GraduationCap, ArrowRight, User, BookOpen } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Button from '../../components/ui/Button';
@@ -9,7 +10,7 @@ import Card from '../../components/ui/Card';
 const SignupPage = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    
+
     const [role, setRole] = useState('student');
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -44,26 +45,12 @@ const SignupPage = () => {
         setIsLoading(true);
 
         try {
-            const response = await fetch('http://localhost:5000/api/auth/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    name,
-                    email,
-                    password,
-                    role,
-                }),
+            const data = await authService.register({
+                name,
+                email,
+                password,
+                role
             });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Something went wrong');
-            }
-
-            localStorage.setItem('userInfo', JSON.stringify(data));
 
             if (data.role === 'student') {
                 navigate('/student');
@@ -79,7 +66,7 @@ const SignupPage = () => {
 
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
-            <motion.div 
+            <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="sm:mx-auto sm:w-full sm:max-w-md"
@@ -98,7 +85,7 @@ const SignupPage = () => {
                 </p>
             </motion.div>
 
-            <motion.div 
+            <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.1 }}
@@ -117,7 +104,7 @@ const SignupPage = () => {
                                 className={`flex-1 flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all ${role === r.id
                                     ? 'border-primary bg-primary/5 text-primary'
                                     : 'border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-200'
-                                }`}
+                                    }`}
                             >
                                 <r.icon className="h-6 w-6 mb-2" />
                                 <span className="font-bold text-xs uppercase tracking-widest">{r.label}</span>
@@ -126,7 +113,7 @@ const SignupPage = () => {
                     </div>
 
                     {error && (
-                        <motion.div 
+                        <motion.div
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
                             className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm font-medium"

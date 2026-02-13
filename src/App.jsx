@@ -28,9 +28,10 @@ import TeacherQuizzes from './pages/teacher/TeacherQuizzes';
 import StudentsList from './pages/teacher/StudentsList';
 import Reports from './pages/teacher/Reports';
 import TeacherMessages from './pages/teacher/TeacherMessages';
+import AdminDashboard from './pages/admin/AdminDashboard'; // Import AdminDashboard
 
 // Layout
-import PageTransition from './components/layout/PageTransition';
+// import PageTransition from './components/layout/PageTransition';
 import PrivateRoute from './components/Routing/PrivateRoute';
 
 /* =======================
@@ -46,29 +47,17 @@ function App() {
         {/* ---------- Public Routes ---------- */}
         <Route
           path="/"
-          element={
-            <PageTransition>
-              <LandingPage />
-            </PageTransition>
-          }
+          element={<LandingPage />}
         />
 
         <Route
           path="/login"
-          element={
-            <PageTransition>
-              <LoginPage />
-            </PageTransition>
-          }
+          element={<LoginPage />}
         />
 
         <Route
           path="/signup"
-          element={
-            <PageTransition>
-              <SignupPage />
-            </PageTransition>
-          }
+          element={<SignupPage />}
         />
 
         {/* ---------- Student Routes ---------- */}
@@ -123,83 +112,55 @@ function App() {
         <Route element={<PrivateRoute allowedRoles={['teacher']} />}>
           <Route
             path="/teacher"
-            element={
-              <PageTransition>
-                <TeacherDashboard />
-              </PageTransition>
-            }
+            element={<TeacherDashboard />}
           />
 
           <Route
             path="/teacher/courses"
-            element={
-              <PageTransition>
-                <TeacherCourses />
-              </PageTransition>
-            }
+            element={<TeacherCourses />}
           />
 
           <Route
             path="/teacher/create-course"
-            element={
-              <PageTransition>
-                <CreateCourse />
-              </PageTransition>
-            }
+            element={<CreateCourse />}
           />
 
           <Route
             path="/teacher/upload"
-            element={
-              <PageTransition>
-                <UploadContent />
-              </PageTransition>
-            }
+            element={<UploadContent />}
           />
 
           <Route
             path="/teacher/assignments"
-            element={
-              <PageTransition>
-                <TeacherAssignments />
-              </PageTransition>
-            }
+            element={<TeacherAssignments />}
           />
 
           <Route
             path="/teacher/quizzes"
-            element={
-              <PageTransition>
-                <TeacherQuizzes />
-              </PageTransition>
-            }
+            element={<TeacherQuizzes />}
           />
 
           <Route
             path="/teacher/students"
-            element={
-              <PageTransition>
-                <StudentsList />
-              </PageTransition>
-            }
+            element={<StudentsList />}
           />
 
           <Route
             path="/teacher/reports"
-            element={
-              <PageTransition>
-                <Reports />
-              </PageTransition>
-            }
+            element={<Reports />}
           />
 
           <Route
             path="/teacher/messages"
-            element={
-              <PageTransition>
-                <TeacherMessages />
-              </PageTransition>
-            }
+            element={<TeacherMessages />}
+          />
+        </Route>
+
+        {/* ---------- Admin Routes ---------- */}
+        <Route element={<PrivateRoute allowedRoles={['admin']} />}>
+          <Route
+            path="/admin"
+            element={<AdminDashboard />}
           />
         </Route>
 

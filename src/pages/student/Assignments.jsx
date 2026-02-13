@@ -60,13 +60,14 @@ const Assignments = () => {
     return (
         <DashboardLayout userType="student" title="Assignments">
             <div className="space-y-6">
+                {/* Assignments List */}
                 <Card className="overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-slate-50 border-b border-slate-200">
                                     <th className="px-6 py-4 text-sm font-semibold text-slate-700">Assignment Title</th>
-                                    <th className="px-6 py-4 text-sm font-semibold text-slate-700">Course</th>
+                                    <th className="px-6 py-4 text-sm font-semibold text-slate-700 hidden md:table-cell">Course</th>
                                     <th className="px-6 py-4 text-sm font-semibold text-slate-700">Due Date</th>
                                     <th className="px-6 py-4 text-sm font-semibold text-slate-700">Status</th>
                                     <th className="px-6 py-4 text-sm font-semibold text-slate-700">Score</th>
@@ -102,53 +103,6 @@ const Assignments = () => {
                         </table>
                     </div>
                 </Card>
-
-                {/* Assignment Detail View */}
-                <div className="mt-12">
-                    <h2 className="text-xl font-bold text-slate-900 mb-6">Submit Assignment</h2>
-                    <Card className="p-6">
-                        <div className="flex justify-between items-start mb-6">
-                            <div>
-                                <h3 className="text-lg font-bold text-slate-900 mb-1">{assignments[0].title}</h3>
-                                <p className="text-sm text-slate-500">{assignments[0].course}</p>
-                            </div>
-                            <div className="text-right">
-                                <p className="text-sm font-medium text-red-600">Due: {assignments[0].dueDate}</p>
-                                <p className="text-xs text-slate-400">100 Points</p>
-                            </div>
-                        </div>
-
-                        <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 mb-8">
-                            <h4 className="text-sm font-bold text-slate-900 mb-2">Instructions</h4>
-                            <p className="text-sm text-slate-600 leading-relaxed">
-                                {assignments[0].description}
-                                <br /><br />
-                                Please ensure your code is well-commented and follows the project style guide. Zip your project files and upload them below.
-                            </p>
-                        </div>
-
-                        <div className="space-y-6">
-                            <div className="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer">
-                                <Upload className="h-10 w-10 text-slate-400 mx-auto mb-4" />
-                                <p className="text-sm font-medium text-slate-900">Click to upload or drag and drop</p>
-                                <p className="text-xs text-slate-500 mt-1">PDF, DOCX, ZIP up to 10MB</p>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">Comments (Optional)</label>
-                                <textarea
-                                    className="w-full p-3 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none resize-none h-24"
-                                    placeholder="Add any notes for the instructor..."
-                                ></textarea>
-                            </div>
-
-                            <div className="flex justify-end space-x-4">
-                                <Button variant="outline">Save Draft</Button>
-                                <Button>Submit Assignment</Button>
-                            </div>
-                        </div>
-                    </Card>
-                </div>
             </div>
         </DashboardLayout>
     );

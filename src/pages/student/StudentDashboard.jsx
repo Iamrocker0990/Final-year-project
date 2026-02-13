@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import dashboardService from '../../services/dashboardService'; // Import service
 import { BookOpen, CheckCircle, Clock, Award, PlayCircle, ArrowRight, TrendingUp } from 'lucide-react';
 import axios from 'axios';
 import DashboardLayout from '../../components/layout/DashboardLayout';
@@ -15,23 +16,15 @@ const StudentDashboard = () => {
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                const userInfoString = localStorage.getItem('userInfo');
-                if (!userInfoString) {
-                    navigate('/login');
-                    return;
-                }
-                const { token } = JSON.parse(userInfoString);
-                const response = await axios.get('http://localhost:5000/api/student/dashboard', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                setDashboardData(response.data);
+                // Token check handled by api.js
+                // User role check if needed
+
+                const data = await dashboardService.getStudentDashboard();
+                setDashboardData(data);
                 setLoading(false);
             } catch (err) {
                 console.error("Error fetching dashboard:", err);
-                if (err.response?.status === 401) {
-                    localStorage.removeItem('userInfo');
-                    navigate('/login');
-                }
+                // Auth error handled by interceptor
                 setError("Failed to load dashboard data.");
                 setLoading(false);
             }
