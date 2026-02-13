@@ -87,13 +87,16 @@ const getCourseById = async (req, res) => {
  */
 const createCourse = async (req, res) => {
     try {
-        const { title, description, thumbnail, price } = req.body;
+        const { title, description, thumbnail, price, category, level, duration } = req.body;
 
         const course = new Course({
             title,
             description,
             thumbnail,
             price,
+            category,
+            level,
+            duration,
             instructor: req.user._id, // Legacy support
             createdBy: req.user._id,  // New field
             status: 'pending',        // Default status
@@ -104,7 +107,7 @@ const createCourse = async (req, res) => {
         res.status(201).json(createdCourse);
     } catch (error) {
         console.error('Error creating course:', error);
-        res.status(400).json({ message: 'Invalid course data' });
+        res.status(400).json({ message: error.message || 'Invalid course data' });
     }
 };
 

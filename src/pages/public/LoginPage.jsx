@@ -21,13 +21,17 @@ const LoginPage = () => {
         const userInfo = localStorage.getItem('userInfo');
         if (userInfo) {
             const { role } = JSON.parse(userInfo);
-            navigate(role === 'student' ? '/student' : '/teacher');
+            if (role === 'student') navigate('/student');
+            else if (role === 'teacher') navigate('/teacher');
+            else if (role === 'admin') navigate('/admin');
         }
 
         const roleParam = searchParams.get('role');
         if (roleParam === 'teacher') {
             setRole('teacher');
-        } else if (roleParam === 'student') {
+        } else if (roleParam === 'admin') {
+            setRole('admin');
+        } else {
             setRole('student');
         }
     }, [searchParams, navigate]);
@@ -42,8 +46,10 @@ const LoginPage = () => {
 
             if (data.role === 'student') {
                 navigate('/student');
-            } else {
+            } else if (data.role === 'teacher') {
                 navigate('/teacher');
+            } else if (data.role === 'admin') {
+                navigate('/admin');
             }
         } catch (err) {
             setError(err.message);
@@ -81,7 +87,7 @@ const LoginPage = () => {
             >
                 <Card className="py-10 px-6 sm:px-12 border-none shadow-2xl shadow-slate-200/50">
                     <div className="flex rounded-xl bg-slate-100 p-1.5 mb-8">
-                        {['student', 'teacher'].map((r) => (
+                        {['student', 'teacher', 'admin'].map((r) => (
                             <button
                                 key={r}
                                 type="button"

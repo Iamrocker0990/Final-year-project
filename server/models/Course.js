@@ -34,6 +34,9 @@ const courseSchema = new mongoose.Schema({
     modules: [moduleSchema], // The list of chapters defined above
 
     price: { type: Number, default: 0 },
+    category: { type: String, required: true },
+    level: { type: String, required: true },
+    duration: { type: String, required: true },
 
     // COURSE LIFECYCLE & RBAC
     status: {

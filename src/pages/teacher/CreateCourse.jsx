@@ -5,6 +5,7 @@ import DashboardLayout from '../../components/layout/DashboardLayout';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import courseService from '../../services/courseService'; // Import service
+import axios from 'axios'; // Import axios for Cloudinary
 
 const CreateCourse = () => {
     const navigate = useNavigate();
@@ -69,19 +70,24 @@ const CreateCourse = () => {
             // For now, keeping it here to minimize storage complexity on backend
             let thumbnailUrl = '';
             if (thumbnailFile) {
-                const imageFormData = new FormData();
-                imageFormData.append("file", thumbnailFile);
-                imageFormData.append("upload_preset", UPLOAD_PRESET);
-                imageFormData.append("cloud_name", CLOUD_NAME);
+                try {
+                    const imageFormData = new FormData();
+                    imageFormData.append("file", thumbnailFile);
+                    imageFormData.append("upload_preset", UPLOAD_PRESET);
+                    imageFormData.append("cloud_name", CLOUD_NAME);
 
-                // Send directly to Cloudinary API (keep axios here as it's external)
-                const res = await axios.post(
-                    `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
-                    imageFormData
-                );
+                    // Send directly to Cloudinary API (keep axios here as it's external)
+                    const res = await axios.post(
+                        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+                        imageFormData
+                    );
 
-                thumbnailUrl = res.data.secure_url;
-                console.log("Image uploaded to Cloudinary:", thumbnailUrl);
+                    thumbnailUrl = res.data.secure_url;
+                    console.log("Image uploaded to Cloudinary:", thumbnailUrl);
+                } catch (imgError) {
+                    console.error("Cloudinary upload failed:", imgError);
+                    alert("Image upload failed. Course will be created without a thumbnail.");
+                }
             }
 
             // C. Prepare Data for Service
