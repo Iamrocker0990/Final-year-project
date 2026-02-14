@@ -22,7 +22,18 @@ const CourseDetail = () => {
     const [progress, setProgress] = useState(0);
     const [completedLessons, setCompletedLessons] = useState([]);
 
+<<<<<<< HEAD
     // sidebarItems removed to use default from DashboardLayout
+=======
+    const sidebarItems = [
+        { icon: BookOpen, label: 'Dashboard', href: '/student' },
+        { icon: BookOpen, label: 'My Courses', href: '/student/courses' },
+        { icon: Video, label: 'Live Classes', href: '/student/live-classes' },
+        { icon: Award, label: 'Quizzes', href: '/student/quizzes' },
+        { icon: BarChart2, label: 'Progress', href: '/student/progress' },
+        { icon: MessageCircle, label: 'Messages', href: '/student/messages' },
+    ];
+>>>>>>> origin/otp-updates
 
     useEffect(() => {
         const fetchData = async () => {
@@ -139,7 +150,11 @@ const CourseDetail = () => {
     const isCompleted = lesson?._id && completedLessons.some((id) => id === lesson._id || id?._id === lesson._id);
 
     return (
+<<<<<<< HEAD
         <DashboardLayout userType="student" title={course.title}>
+=======
+        <DashboardLayout sidebarItems={sidebarItems} userType="student" title={course.title}>
+>>>>>>> origin/otp-updates
             <div className="flex flex-col lg:flex-row gap-8">
                 {/* Main Content */}
                 <div className="flex-1">

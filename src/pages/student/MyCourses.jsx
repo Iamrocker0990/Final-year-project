@@ -1,7 +1,13 @@
+<<<<<<< HEAD
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { BookOpen, Video, FileText, BarChart2, Award, MessageCircle, Search, Filter, Clock, User } from 'lucide-react';
 import axios from 'axios';
+=======
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { BookOpen, Video, FileText, BarChart2, Award, MessageCircle, Search, Filter, Clock, User } from 'lucide-react';
+>>>>>>> origin/otp-updates
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -9,6 +15,7 @@ import Input from '../../components/ui/Input';
 import Badge from '../../components/ui/Badge';
 
 const MyCourses = () => {
+<<<<<<< HEAD
     const [courses, setCourses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -59,6 +66,71 @@ const MyCourses = () => {
 
     return (
         <DashboardLayout userType="student" title="My Courses">
+=======
+    const sidebarItems = [
+        { icon: BookOpen, label: 'Dashboard', href: '/student' },
+        { icon: BookOpen, label: 'My Courses', href: '/student/courses' },
+        { icon: Video, label: 'Live Classes', href: '/student/live-classes' },
+        { icon: FileText, label: 'Assignments', href: '/student/assignments' },
+        { icon: Award, label: 'Quizzes', href: '/student/quizzes' },
+        { icon: BarChart2, label: 'Progress', href: '/student/progress' },
+        { icon: MessageCircle, label: 'Messages', href: '/student/messages' },
+    ];
+
+    const [filter, setFilter] = useState('All');
+
+    const courses = [
+        {
+            id: 1,
+            title: 'Advanced React Patterns',
+            instructor: 'Sarah Johnson',
+            progress: 45,
+            totalLessons: 24,
+            completedLessons: 11,
+            lastAccessed: '2 hours ago',
+            image: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?auto=format&fit=crop&w=800&q=80',
+            status: 'In Progress'
+        },
+        {
+            id: 2,
+            title: 'UI/UX Design Principles',
+            instructor: 'Michael Chen',
+            progress: 72,
+            totalLessons: 18,
+            completedLessons: 13,
+            lastAccessed: 'Yesterday',
+            image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?auto=format&fit=crop&w=800&q=80',
+            status: 'In Progress'
+        },
+        {
+            id: 3,
+            title: 'Introduction to Python',
+            instructor: 'David Smith',
+            progress: 100,
+            totalLessons: 30,
+            completedLessons: 30,
+            lastAccessed: '1 week ago',
+            image: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&w=800&q=80',
+            status: 'Completed'
+        },
+        {
+            id: 4,
+            title: 'Data Science Fundamentals',
+            instructor: 'Emily Davis',
+            progress: 10,
+            totalLessons: 45,
+            completedLessons: 4,
+            lastAccessed: '3 days ago',
+            image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80',
+            status: 'In Progress'
+        },
+    ];
+
+    const filteredCourses = filter === 'All' ? courses : courses.filter(c => c.status === filter);
+
+    return (
+        <DashboardLayout sidebarItems={sidebarItems} userType="student" title="My Courses">
+>>>>>>> origin/otp-updates
             <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
                 <div className="flex items-center space-x-2 bg-white p-1 rounded-lg border border-slate-200">
                     {['All', 'In Progress', 'Completed'].map((f) => (
@@ -85,6 +157,7 @@ const MyCourses = () => {
                 </div>
             </div>
 
+<<<<<<< HEAD
             {error && (
                 <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6">
                     {error}
@@ -146,6 +219,53 @@ const MyCourses = () => {
                         <p className="text-slate-500 font-medium">No courses found matching your filter.</p>
                     </div>
                 )}
+=======
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredCourses.map((course) => (
+                    <Card key={course.id} className="overflow-hidden flex flex-col h-full">
+                        <div className="h-40 overflow-hidden relative">
+                            <img src={course.image} alt={course.title} className="w-full h-full object-cover transition-transform hover:scale-105 duration-500" />
+                            <div className="absolute top-3 right-3">
+                                <Badge variant={course.status === 'Completed' ? 'success' : 'primary'}>
+                                    {course.status}
+                                </Badge>
+                            </div>
+                        </div>
+                        <div className="p-5 flex-1 flex flex-col">
+                            <h3 className="font-bold text-slate-900 mb-2 text-lg line-clamp-1">{course.title}</h3>
+                            <div className="flex items-center text-sm text-slate-500 mb-4">
+                                <User className="h-4 w-4 mr-2" />
+                                <span>{course.instructor}</span>
+                            </div>
+
+                            <div className="mb-4">
+                                <div className="flex justify-between text-xs text-slate-500 mb-1">
+                                    <span>{course.progress}% Completed</span>
+                                    <span>{course.completedLessons}/{course.totalLessons} Lessons</span>
+                                </div>
+                                <div className="w-full bg-slate-100 rounded-full h-2">
+                                    <div
+                                        className={`h-2 rounded-full ${course.status === 'Completed' ? 'bg-green-500' : 'bg-primary'}`}
+                                        style={{ width: `${course.progress}%` }}
+                                    ></div>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center text-xs text-slate-400">
+                                <Clock className="h-3 w-3 mr-1" />
+                                {course.lastAccessed}
+                            </div>
+                            {course.status === 'Completed' ? (
+                                <Button size="sm" variant="outline">Review</Button>
+                            ) : (
+                                <Link to={`/student/courses/${course.id}`}>
+                                    <Button size="sm" variant="primary">Continue</Button>
+                                </Link>
+                            )}
+                        </div>
+                    </Card>
+                ))}
+>>>>>>> origin/otp-updates
             </div>
         </DashboardLayout>
     );

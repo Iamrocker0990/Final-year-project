@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
 import courseService from '../../services/courseService'; // Import service
 import { BookOpen, Users, FileText, Award, BarChart2, MessageCircle, Plus, Upload, Calendar } from 'lucide-react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
@@ -61,7 +60,6 @@ const TeacherDashboard = () => {
                     recentActivity: [], // Placeholder
                     chartData: myCourses.map(c => ({ name: c.title, count: c.studentsCount || 0, color: 'bg-blue-500' }))
                 });
-
                 setLoading(false);
 
             } catch (err) {

@@ -1,12 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+<<<<<<< HEAD
 import dashboardService from '../../services/dashboardService'; // Import service
 import { BookOpen, CheckCircle, Clock, Award, PlayCircle, ArrowRight, TrendingUp } from 'lucide-react';
 import axios from 'axios';
+=======
+import { BookOpen, CheckCircle, Clock, Award, PlayCircle, ArrowRight, TrendingUp } from 'lucide-react';
+import axios from 'axios';
+import { motion, AnimatePresence } from 'framer-motion';
+>>>>>>> origin/otp-updates
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 
+<<<<<<< HEAD
+=======
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: { staggerChildren: 0.1 }
+    }
+};
+
+const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+};
+
+>>>>>>> origin/otp-updates
 const StudentDashboard = () => {
     const [dashboardData, setDashboardData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -16,6 +38,7 @@ const StudentDashboard = () => {
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
+<<<<<<< HEAD
                 // Token check handled by api.js
                 // User role check if needed
 
@@ -25,6 +48,25 @@ const StudentDashboard = () => {
             } catch (err) {
                 console.error("Error fetching dashboard:", err);
                 // Auth error handled by interceptor
+=======
+                const userInfoString = localStorage.getItem('userInfo');
+                if (!userInfoString) {
+                    navigate('/login');
+                    return;
+                }
+                const { token } = JSON.parse(userInfoString);
+                const response = await axios.get('http://localhost:5000/api/student/dashboard', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setDashboardData(response.data);
+                setLoading(false);
+            } catch (err) {
+                console.error("Error fetching dashboard:", err);
+                if (err.response?.status === 401) {
+                    localStorage.removeItem('userInfo');
+                    navigate('/login');
+                }
+>>>>>>> origin/otp-updates
                 setError("Failed to load dashboard data.");
                 setLoading(false);
             }
@@ -32,6 +74,7 @@ const StudentDashboard = () => {
         fetchDashboardData();
     }, [navigate]);
 
+<<<<<<< HEAD
     const totalCourses = dashboardData?.stats?.totalCourses || 0;
     const totalCompletedLessons = dashboardData?.stats?.totalCompletedLessons || 0;
 
@@ -41,6 +84,27 @@ const StudentDashboard = () => {
                 <div className="flex flex-col justify-center items-center h-[60vh] space-y-4">
                     <div
                         className="h-12 w-12 border-4 border-primary border-t-transparent rounded-full animate-spin"
+=======
+    const sidebarItems = [
+        { icon: BookOpen, label: 'Overview', href: '/student' },
+        { icon: BookOpen, label: 'My Learning', href: '/student/courses' },
+        { icon: PlayCircle, label: 'Live Classes', href: '/student/live-classes' },
+        { icon: Award, label: 'My Quizzes', href: '/student/quizzes' },
+        { icon: TrendingUp, label: 'Progress', href: '/student/progress' },
+    ];
+
+    const totalCourses = dashboardData?.courses?.length || 0;
+    const totalCompletedLessons = dashboardData?.courses?.reduce((acc, course) => acc + (course.completedLessons?.length || 0), 0) || 0;
+
+    if (loading) {
+        return (
+            <DashboardLayout sidebarItems={sidebarItems} userType="student" title="Welcome back!">
+                <div className="flex flex-col justify-center items-center h-[60vh] space-y-4">
+                    <motion.div 
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        className="h-12 w-12 border-4 border-primary border-t-transparent rounded-full"
+>>>>>>> origin/otp-updates
                     />
                     <p className="text-slate-500 font-medium animate-pulse">Loading your dashboard...</p>
                 </div>
@@ -51,12 +115,24 @@ const StudentDashboard = () => {
     const userName = JSON.parse(localStorage.getItem('userInfo'))?.name?.split(' ')[0] || 'Student';
 
     return (
+<<<<<<< HEAD
         <DashboardLayout userType="student" title={`Hello, ${userName}!`}>
             <div
                 className="space-y-10"
             >
                 {/* Hero Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+=======
+        <DashboardLayout sidebarItems={sidebarItems} userType="student" title={`Hello, ${userName}!`}>
+            <motion.div 
+                initial="hidden"
+                animate="visible"
+                variants={containerVariants}
+                className="space-y-10"
+            >
+                {/* Hero Stats */}
+                <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+>>>>>>> origin/otp-updates
                     {[
                         { label: 'Active Courses', value: totalCourses, icon: BookOpen, color: 'text-indigo-600', bg: 'bg-indigo-50' },
                         { label: 'Lessons Done', value: totalCompletedLessons, icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50' },
@@ -75,17 +151,26 @@ const StudentDashboard = () => {
                             </div>
                         </Card>
                     ))}
+<<<<<<< HEAD
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
                     {/* Active Courses */}
                     <div className="lg:col-span-2 space-y-6">
+=======
+                </motion.div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                    {/* Active Courses */}
+                    <motion.div variants={itemVariants} className="lg:col-span-2 space-y-6">
+>>>>>>> origin/otp-updates
                         <div className="flex justify-between items-center">
                             <h2 className="text-2xl font-bold text-slate-900">Continue Learning</h2>
                             <Link to="/student/courses" className="text-primary font-bold text-sm hover:underline flex items-center">
                                 View all <ArrowRight className="ml-1 h-4 w-4" />
                             </Link>
                         </div>
+<<<<<<< HEAD
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {dashboardData?.courses?.length > 0 ? (
@@ -136,6 +221,61 @@ const StudentDashboard = () => {
 
                     {/* Quick Activity / Sidebar */}
                     <div className="space-y-8">
+=======
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <AnimatePresence>
+                                {dashboardData?.courses?.length > 0 ? (
+                                    dashboardData.courses.slice(0, 4).map((course) => (
+                                        <motion.div key={course._id} layout variants={itemVariants}>
+                                            <Card className="overflow-hidden group border-none ring-1 ring-slate-100 hover:ring-primary/20 transition-all shadow-sm hover:shadow-xl hover:shadow-primary/5">
+                                                <div className="h-40 overflow-hidden relative">
+                                                    <img 
+                                                        src={course.thumbnail || 'https://via.placeholder.com/800x400'} 
+                                                        alt={course.title} 
+                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                                                    />
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                                    <div className="absolute bottom-4 left-4 right-4">
+                                                        <div className="w-full bg-white/20 rounded-full h-1.5 backdrop-blur-md overflow-hidden">
+                                                            <motion.div
+                                                                initial={{ width: 0 }}
+                                                                animate={{ width: `${course.progress}%` }}
+                                                                className="bg-white h-full"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="p-6">
+                                                    <h3 className="font-bold text-slate-900 mb-4 line-clamp-1 group-hover:text-primary transition-colors">{course.title}</h3>
+                                                    <div className="flex items-center justify-between mb-6">
+                                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{course.progress}% Complete</span>
+                                                        <span className="text-xs font-bold text-primary bg-primary/5 px-2 py-1 rounded">Resume</span>
+                                                    </div>
+                                                    <Link to={`/student/courses/${course._id}`}>
+                                                        <Button size="sm" className="w-full group-hover:bg-primary group-hover:text-white border-none ring-1 ring-primary/10">
+                                                            Continue Lesson
+                                                        </Button>
+                                                    </Link>
+                                                </div>
+                                            </Card>
+                                        </motion.div>
+                                    ))
+                                ) : (
+                                    <div className="col-span-2 py-20 text-center bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
+                                        <p className="text-slate-500 font-medium mb-4">You haven't started any courses yet.</p>
+                                        <Link to="/">
+                                            <Button variant="outline">Browse Catalog</Button>
+                                        </Link>
+                                    </div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    </motion.div>
+
+                    {/* Quick Activity / Sidebar */}
+                    <motion.div variants={itemVariants} className="space-y-8">
+>>>>>>> origin/otp-updates
                         <div>
                             <h2 className="text-2xl font-bold text-slate-900 mb-6">Learning Path</h2>
                             <Card className="p-6 space-y-6 border-none ring-1 ring-slate-100">
@@ -173,9 +313,15 @@ const StudentDashboard = () => {
                                 </div>
                             </div>
                         </div>
+<<<<<<< HEAD
                     </div>
                 </div>
             </div>
+=======
+                    </motion.div>
+                </div>
+            </motion.div>
+>>>>>>> origin/otp-updates
         </DashboardLayout>
     );
 };
