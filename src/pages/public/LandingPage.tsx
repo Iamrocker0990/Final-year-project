@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-<<<<<<< HEAD
-import { useState, useEffect } from 'react';
-=======
->>>>>>> otp-updates
+
 import courseService from '../../services/courseService';
 import { BookOpen, Users, Video, BarChart2, MessageCircle, Shield, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -96,7 +93,6 @@ const LandingPage = () => {
                                 </Link>
                             </div>
                         </motion.div>
-<<<<<<< HEAD
 
                         <motion.div
                             initial={{ opacity: 0, scale: 0.9 }}
@@ -118,18 +114,6 @@ const LandingPage = () => {
                                 {/* Floating stats card */}
 
                             </div>
-=======
-
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.7, ease: "easeOut" }}
-                            className="relative lg:ml-10"
-                        >
-                            <div className="absolute -top-20 -right-20 w-96 h-96 bg-primary/10 rounded-full blur-[100px]"></div>
-                            <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-indigo-100/20 rounded-full blur-[100px]"></div>
-                            {/* Floating stats card can go here */}
->>>>>>> otp-updates
                         </motion.div>
                     </div>
                 </div>

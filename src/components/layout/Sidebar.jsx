@@ -30,11 +30,7 @@ const Sidebar = ({ items, userType }) => {
     return (
         <aside className="w-64 border-r border-slate-100 hidden md:flex flex-col h-[calc(100vh-4rem)] sticky top-16 bg-white/50 backdrop-blur-sm">
             <div className="p-6 h-full flex flex-col">
-<<<<<<< HEAD
-                <div 
-=======
                 <div
->>>>>>> otp-updates
                     className="flex items-center space-x-4 mb-10 p-2 bg-slate-50/50 rounded-2xl ring-1 ring-slate-100"
                 >
                     <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-primary/20">
@@ -44,11 +40,7 @@ const Sidebar = ({ items, userType }) => {
                         <p className="font-bold text-slate-900 truncate text-sm leading-tight">
                             {displayName}
                         </p>
-<<<<<<< HEAD
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{userType}</p>
-=======
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{userType}</p>
->>>>>>> otp-updates
                     </div>
                 </div>
 

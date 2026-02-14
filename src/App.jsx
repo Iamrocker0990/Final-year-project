@@ -31,11 +31,7 @@ import TeacherMessages from './pages/teacher/TeacherMessages';
 import AdminDashboard from './pages/admin/AdminDashboard'; // Import AdminDashboard
 
 // Layout
-<<<<<<< HEAD
-// import PageTransition from './components/layout/PageTransition';
-=======
 // import PageTransition from './components/layout/PageTransition'; // Removed in favor of minimalistic transitions
->>>>>>> otp-updates
 import PrivateRoute from './components/Routing/PrivateRoute';
 
 /* =======================

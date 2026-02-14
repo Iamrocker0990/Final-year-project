@@ -6,11 +6,7 @@ import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 
 const Assignments = () => {
-<<<<<<< HEAD
-    // sidebarItems removed to use default from DashboardLayout
 
-=======
->>>>>>> otp-updates
     const assignments = [
         {
             id: 1,
