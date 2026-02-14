@@ -30,13 +30,7 @@ const Sidebar = ({ items, userType }) => {
     return (
         <aside className="w-64 border-r border-slate-100 hidden md:flex flex-col h-[calc(100vh-4rem)] sticky top-16 bg-white/50 backdrop-blur-sm">
             <div className="p-6 h-full flex flex-col">
-<<<<<<< HEAD
-                <div 
-=======
-                <motion.div 
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
->>>>>>> origin/otp-updates
+                <div
                     className="flex items-center space-x-4 mb-10 p-2 bg-slate-50/50 rounded-2xl ring-1 ring-slate-100"
                 >
                     <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-primary/20">
@@ -46,26 +40,14 @@ const Sidebar = ({ items, userType }) => {
                         <p className="font-bold text-slate-900 truncate text-sm leading-tight">
                             {displayName}
                         </p>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{userType}</p>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{userType}</p>
                     </div>
-<<<<<<< HEAD
                 </div>
 
                 <nav className="space-y-1 flex-1">
                     {items.map((item, index) => (
                         <div
                             key={item.href}
-=======
-                </motion.div>
-
-                <nav className="space-y-1 flex-1">
-                    {items.map((item, index) => (
-                        <motion.div
-                            key={item.href}
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.05 }}
->>>>>>> origin/otp-updates
                         >
                             <NavLink
                                 to={item.href}
@@ -80,11 +62,7 @@ const Sidebar = ({ items, userType }) => {
                                 <item.icon className="h-5 w-5" />
                                 <span className="text-sm">{item.label}</span>
                             </NavLink>
-<<<<<<< HEAD
                         </div>
-=======
-                        </motion.div>
->>>>>>> origin/otp-updates
                     ))}
                 </nav>
 

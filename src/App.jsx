@@ -28,16 +28,10 @@ import TeacherQuizzes from './pages/teacher/TeacherQuizzes';
 import StudentsList from './pages/teacher/StudentsList';
 import Reports from './pages/teacher/Reports';
 import TeacherMessages from './pages/teacher/TeacherMessages';
-<<<<<<< HEAD
 import AdminDashboard from './pages/admin/AdminDashboard'; // Import AdminDashboard
 
 // Layout
-// import PageTransition from './components/layout/PageTransition';
-=======
-
-// Layout
-import PageTransition from './components/layout/PageTransition';
->>>>>>> origin/otp-updates
+// import PageTransition from './components/layout/PageTransition'; // Removed in favor of minimalistic transitions
 import PrivateRoute from './components/Routing/PrivateRoute';
 
 /* =======================
@@ -53,160 +47,64 @@ function App() {
         {/* ---------- Public Routes ---------- */}
         <Route
           path="/"
-<<<<<<< HEAD
           element={<LandingPage />}
-=======
-          element={
-            <PageTransition>
-              <LandingPage />
-            </PageTransition>
-          }
->>>>>>> origin/otp-updates
         />
 
         <Route
           path="/login"
-<<<<<<< HEAD
           element={<LoginPage />}
-=======
-          element={
-            <PageTransition>
-              <LoginPage />
-            </PageTransition>
-          }
->>>>>>> origin/otp-updates
         />
 
         <Route
           path="/signup"
-<<<<<<< HEAD
           element={<SignupPage />}
-=======
-          element={
-            <PageTransition>
-              <SignupPage />
-            </PageTransition>
-          }
->>>>>>> origin/otp-updates
         />
 
         {/* ---------- Student Routes ---------- */}
         <Route element={<PrivateRoute allowedRoles={['student']} />}>
           <Route
             path="/student"
-<<<<<<< HEAD
             element={<StudentDashboard />}
-=======
-            element={
-              <PageTransition>
-                <StudentDashboard />
-              </PageTransition>
-            }
->>>>>>> origin/otp-updates
           />
 
           <Route
             path="/student/courses"
-<<<<<<< HEAD
             element={<MyCourses />}
-=======
-            element={
-              <PageTransition>
-                <MyCourses />
-              </PageTransition>
-            }
->>>>>>> origin/otp-updates
           />
 
           <Route
             path="/student/courses/:id"
-<<<<<<< HEAD
             element={<CourseDetail />}
-=======
-            element={
-              <PageTransition>
-                <CourseDetail />
-              </PageTransition>
-            }
->>>>>>> origin/otp-updates
           />
 
           <Route
             path="/student/assignments"
-<<<<<<< HEAD
             element={<Assignments />}
-=======
-            element={
-              <PageTransition>
-                <Assignments />
-              </PageTransition>
-            }
->>>>>>> origin/otp-updates
           />
 
           <Route
             path="/student/quizzes"
-<<<<<<< HEAD
             element={<Quizzes />}
-=======
-            element={
-              <PageTransition>
-                <Quizzes />
-              </PageTransition>
-            }
->>>>>>> origin/otp-updates
           />
 
           <Route
             path="/student/live-classes"
-<<<<<<< HEAD
             element={<LiveClasses />}
-=======
-            element={
-              <PageTransition>
-                <LiveClasses />
-              </PageTransition>
-            }
->>>>>>> origin/otp-updates
           />
 
           <Route
             path="/student/progress"
-<<<<<<< HEAD
             element={<ProgressReport />}
-=======
-            element={
-              <PageTransition>
-                <ProgressReport />
-              </PageTransition>
-            }
->>>>>>> origin/otp-updates
           />
 
           <Route
             path="/student/messages"
-<<<<<<< HEAD
             element={<Messages />}
-=======
-            element={
-              <PageTransition>
-                <Messages />
-              </PageTransition>
-            }
->>>>>>> origin/otp-updates
           />
 
           <Route
             path="/student/settings"
-<<<<<<< HEAD
             element={<Settings />}
-=======
-            element={
-              <PageTransition>
-                <Settings />
-              </PageTransition>
-            }
->>>>>>> origin/otp-updates
           />
         </Route>
 
@@ -214,111 +112,46 @@ function App() {
         <Route element={<PrivateRoute allowedRoles={['teacher']} />}>
           <Route
             path="/teacher"
-<<<<<<< HEAD
             element={<TeacherDashboard />}
-=======
-            element={
-              <PageTransition>
-                <TeacherDashboard />
-              </PageTransition>
-            }
->>>>>>> origin/otp-updates
           />
 
           <Route
             path="/teacher/courses"
-<<<<<<< HEAD
             element={<TeacherCourses />}
-=======
-            element={
-              <PageTransition>
-                <TeacherCourses />
-              </PageTransition>
-            }
->>>>>>> origin/otp-updates
           />
 
           <Route
             path="/teacher/create-course"
-<<<<<<< HEAD
             element={<CreateCourse />}
-=======
-            element={
-              <PageTransition>
-                <CreateCourse />
-              </PageTransition>
-            }
->>>>>>> origin/otp-updates
           />
 
           <Route
             path="/teacher/upload"
-<<<<<<< HEAD
             element={<UploadContent />}
-=======
-            element={
-              <PageTransition>
-                <UploadContent />
-              </PageTransition>
-            }
->>>>>>> origin/otp-updates
           />
 
           <Route
             path="/teacher/assignments"
-<<<<<<< HEAD
             element={<TeacherAssignments />}
-=======
-            element={
-              <PageTransition>
-                <TeacherAssignments />
-              </PageTransition>
-            }
->>>>>>> origin/otp-updates
           />
 
           <Route
             path="/teacher/quizzes"
-<<<<<<< HEAD
             element={<TeacherQuizzes />}
-=======
-            element={
-              <PageTransition>
-                <TeacherQuizzes />
-              </PageTransition>
-            }
->>>>>>> origin/otp-updates
           />
 
           <Route
             path="/teacher/students"
-<<<<<<< HEAD
             element={<StudentsList />}
-=======
-            element={
-              <PageTransition>
-                <StudentsList />
-              </PageTransition>
-            }
->>>>>>> origin/otp-updates
           />
 
           <Route
             path="/teacher/reports"
-<<<<<<< HEAD
             element={<Reports />}
-=======
-            element={
-              <PageTransition>
-                <Reports />
-              </PageTransition>
-            }
->>>>>>> origin/otp-updates
           />
 
           <Route
             path="/teacher/messages"
-<<<<<<< HEAD
             element={<TeacherMessages />}
           />
         </Route>
@@ -328,13 +161,6 @@ function App() {
           <Route
             path="/admin"
             element={<AdminDashboard />}
-=======
-            element={
-              <PageTransition>
-                <TeacherMessages />
-              </PageTransition>
-            }
->>>>>>> origin/otp-updates
           />
         </Route>
 

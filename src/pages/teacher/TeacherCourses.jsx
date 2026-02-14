@@ -1,9 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-<<<<<<< HEAD
 import courseService from '../../services/courseService'; // Import service
-=======
->>>>>>> origin/otp-updates
 import { BookOpen, Users, FileText, Award, BarChart2, MessageCircle, Plus, Upload, MoreVertical, Edit, Trash, Eye } from 'lucide-react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Card from '../../components/ui/Card';
@@ -11,7 +8,6 @@ import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 
 const TeacherCourses = () => {
-<<<<<<< HEAD
     // sidebarItems removed to use default from DashboardLayout
 
     const [courses, setCourses] = React.useState([]);
@@ -44,61 +40,6 @@ const TeacherCourses = () => {
 
     return (
         <DashboardLayout userType="teacher" title="My Courses">
-=======
-    const sidebarItems = [
-        { icon: BookOpen, label: 'Dashboard', href: '/teacher' },
-        { icon: BookOpen, label: 'My Courses', href: '/teacher/courses' },
-        { icon: Plus, label: 'Create Course', href: '/teacher/create-course' },
-        { icon: Upload, label: 'Upload Content', href: '/teacher/upload' },
-        { icon: FileText, label: 'Assignments', href: '/teacher/assignments' },
-        { icon: Award, label: 'Quizzes', href: '/teacher/quizzes' },
-        { icon: Users, label: 'Students', href: '/teacher/students' },
-        { icon: BarChart2, label: 'Reports', href: '/teacher/reports' },
-        { icon: MessageCircle, label: 'Messages', href: '/teacher/messages' },
-    ];
-
-    const courses = [
-        {
-            id: 1,
-            title: 'Advanced React Patterns',
-            category: 'Programming',
-            students: 85,
-            status: 'Published',
-            lastUpdated: '2 days ago',
-            image: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?auto=format&fit=crop&w=800&q=80'
-        },
-        {
-            id: 2,
-            title: 'UI/UX Design Principles',
-            category: 'Design',
-            students: 65,
-            status: 'Published',
-            lastUpdated: '1 week ago',
-            image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?auto=format&fit=crop&w=800&q=80'
-        },
-        {
-            id: 3,
-            title: 'Introduction to Python',
-            category: 'Programming',
-            students: 92,
-            status: 'Published',
-            lastUpdated: '3 days ago',
-            image: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&w=800&q=80'
-        },
-        {
-            id: 4,
-            title: 'Machine Learning Basics',
-            category: 'Data Science',
-            students: 0,
-            status: 'Draft',
-            lastUpdated: 'Just now',
-            image: 'https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?auto=format&fit=crop&w=800&q=80'
-        }
-    ];
-
-    return (
-        <DashboardLayout sidebarItems={sidebarItems} userType="teacher" title="My Courses">
->>>>>>> origin/otp-updates
             <div className="flex justify-between items-center mb-8">
                 <div className="flex space-x-4">
                     <div className="relative">

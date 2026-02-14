@@ -6,19 +6,7 @@ import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 
 const LiveClasses = () => {
-<<<<<<< HEAD
     // sidebarItems removed to use default from DashboardLayout
-=======
-    const sidebarItems = [
-        { icon: BookOpen, label: 'Dashboard', href: '/student' },
-        { icon: BookOpen, label: 'My Courses', href: '/student/courses' },
-        { icon: Video, label: 'Live Classes', href: '/student/live-classes' },
-        { icon: FileText, label: 'Assignments', href: '/student/assignments' },
-        { icon: Award, label: 'Quizzes', href: '/student/quizzes' },
-        { icon: BarChart2, label: 'Progress', href: '/student/progress' },
-        { icon: MessageCircle, label: 'Messages', href: '/student/messages' },
-    ];
->>>>>>> origin/otp-updates
 
     const sessions = [
         {
@@ -54,11 +42,7 @@ const LiveClasses = () => {
     ];
 
     return (
-<<<<<<< HEAD
         <DashboardLayout userType="student" title="Live Classes">
-=======
-        <DashboardLayout sidebarItems={sidebarItems} userType="student" title="Live Classes">
->>>>>>> origin/otp-updates
             <div className="space-y-8">
                 {/* Live Now Section */}
                 {sessions.filter(s => s.status === 'Live').map(session => (

@@ -1,10 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-<<<<<<< HEAD
-import { useState, useEffect } from 'react';
 import courseService from '../../services/courseService';
-=======
->>>>>>> origin/otp-updates
 import { BookOpen, Users, Video, BarChart2, MessageCircle, Shield, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Button from '../../components/ui/Button';
@@ -35,7 +31,6 @@ const itemVariants = {
 };
 
 const LandingPage = () => {
-<<<<<<< HEAD
     const [featuredCourses, setFeaturedCourses] = useState<any[]>([]);
 
     useEffect(() => {
@@ -50,8 +45,6 @@ const LandingPage = () => {
         };
         fetchCourses();
     }, []);
-=======
->>>>>>> origin/otp-updates
     return (
         <div className="min-h-screen bg-white selection:bg-primary/10">
             <Navbar />
@@ -60,20 +53,12 @@ const LandingPage = () => {
             <section className="relative pt-20 pb-32 lg:pt-32 lg:pb-48 overflow-hidden">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-<<<<<<< HEAD
                         <motion.div
-=======
-                        <motion.div 
->>>>>>> origin/otp-updates
                             initial={{ opacity: 0, x: -30 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.6 }}
                         >
-<<<<<<< HEAD
                             <motion.div
-=======
-                            <motion.div 
->>>>>>> origin/otp-updates
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.2 }}
@@ -108,11 +93,7 @@ const LandingPage = () => {
                             </div>
                         </motion.div>
 
-<<<<<<< HEAD
                         <motion.div
-=======
-                        <motion.div 
->>>>>>> origin/otp-updates
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.7, ease: "easeOut" }}
@@ -120,28 +101,7 @@ const LandingPage = () => {
                         >
                             <div className="absolute -top-20 -right-20 w-96 h-96 bg-primary/10 rounded-full blur-[100px]"></div>
                             <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-indigo-100/20 rounded-full blur-[100px]"></div>
-<<<<<<< HEAD
-
-=======
-                            
->>>>>>> origin/otp-updates
-                            <div className="relative group">
-                                <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent rounded-3xl group-hover:opacity-0 transition-opacity duration-500"></div>
-                                <img
-                                    src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1471&q=80"
-                                    alt="Students learning"
-                                    className="rounded-3xl shadow-2xl grayscale-[20%] group-hover:grayscale-0 transition-all duration-700"
-                                />
-<<<<<<< HEAD
-
-                                {/* Floating stats card */}
-
-=======
-                                
-                                {/* Floating stats card */}
-                                
->>>>>>> origin/otp-updates
-                            </div>
+                            {/* Floating stats card can go here */}
                         </motion.div>
                     </div>
                 </div>
@@ -150,11 +110,7 @@ const LandingPage = () => {
             {/* Features Section */}
             <section className="py-32 bg-slate-50/50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-<<<<<<< HEAD
                     <motion.div
-=======
-                    <motion.div 
->>>>>>> origin/otp-updates
                         initial="hidden"
                         whileInView="visible"
                         viewport={{ once: true, margin: "-100px" }}
@@ -169,11 +125,7 @@ const LandingPage = () => {
                         </motion.p>
                     </motion.div>
 
-<<<<<<< HEAD
                     <motion.div
-=======
-                    <motion.div 
->>>>>>> origin/otp-updates
                         initial="hidden"
                         whileInView="visible"
                         viewport={{ once: true, margin: "-50px" }}
@@ -216,7 +168,6 @@ const LandingPage = () => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-<<<<<<< HEAD
                         {featuredCourses.length > 0 ? (
                             featuredCourses.map((course, index) => (
                                 <motion.div
@@ -250,42 +201,6 @@ const LandingPage = () => {
                         ) : (
                             <p className="text-center col-span-4 text-slate-500">No courses available at the moment. Check back soon!</p>
                         )}
-=======
-                        {[
-                            { title: 'Modern React Masterclass', category: 'Programming', level: 'Beginner', image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=800&q=80' },
-                            { title: 'Data Analytics Foundations', category: 'Data Science', level: 'Intermediate', image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80' },
-                            { title: 'Product Design Principles', category: 'Design', level: 'All Levels', image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?auto=format&fit=crop&w=800&q=80' },
-                            { title: 'Advanced Growth Marketing', category: 'Marketing', level: 'Expert', image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80' },
-                        ].map((course, index) => (
-                            <motion.div 
-                                key={index} 
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: index * 0.1 }}
-                            >
-                                <Card className="overflow-hidden group cursor-pointer border-none ring-1 ring-slate-200/60 hover:ring-primary/20 transition-all shadow-none hover:shadow-2xl hover:shadow-primary/5">
-                                    <div className="relative h-56 overflow-hidden">
-                                        <img
-                                            src={course.image}
-                                            alt={course.title}
-                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                                        />
-                                        <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-slate-900 shadow-sm uppercase tracking-wider">
-                                            {course.level}
-                                        </div>
-                                    </div>
-                                    <div className="p-8">
-                                        <div className="text-xs font-bold text-primary uppercase tracking-widest mb-3">{course.category}</div>
-                                        <h3 className="text-xl font-bold text-slate-900 mb-4 group-hover:text-primary transition-colors leading-tight h-14 overflow-hidden">{course.title}</h3>
-                                        <Button variant="outline" className="w-full group-hover:bg-primary group-hover:text-white transition-all border-slate-200 group-hover:border-primary">
-                                            Learn More
-                                        </Button>
-                                    </div>
-                                </Card>
-                            </motion.div>
-                        ))}
->>>>>>> origin/otp-updates
                     </div>
                 </div>
             </section>
