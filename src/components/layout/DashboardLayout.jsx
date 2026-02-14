@@ -58,7 +58,7 @@ const DashboardLayout = ({ children, sidebarItems, userType, title }) => {
             <header
                 className="bg-white/80 backdrop-blur-md border-b border-slate-100 h-16 sticky top-0 z-40"
             >
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
+                <div className="w-full px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
                     <div className="flex items-center space-x-8">
                         <Link to="/" className="flex items-center space-x-2 group">
                             <div className="bg-primary/10 p-1.5 rounded-lg group-hover:scale-110 transition-transform">
@@ -151,7 +151,7 @@ const DashboardLayout = ({ children, sidebarItems, userType, title }) => {
                 </div>
             </header>
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex">
+            <div className="w-full px-4 sm:px-6 lg:px-8 flex">
                 <Sidebar items={items} userType={userType} />
                 <main className="flex-1 py-8 md:px-8">
                     {children}
