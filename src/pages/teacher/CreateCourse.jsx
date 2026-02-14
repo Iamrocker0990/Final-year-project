@@ -248,8 +248,13 @@ const CreateCourse = () => {
                                         </div>
                                     )}
                                 </label>
+<<<<<<< HEAD
                             </div>
                         </div>
+=======
+                            </div >
+                        </div >
+>>>>>>> otp-updates
 
                         <div className="flex justify-end space-x-4 pt-6 border-t border-slate-100">
                             <Button variant="outline">Save as Draft</Button>
@@ -265,10 +270,10 @@ const CreateCourse = () => {
                                 )}
                             </Button>
                         </div>
-                    </div>
-                </Card>
-            </div>
-        </DashboardLayout>
+                    </div >
+                </Card >
+            </div >
+        </DashboardLayout >
     );
 };
 

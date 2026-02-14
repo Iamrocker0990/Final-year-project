@@ -6,6 +6,10 @@ import axios from 'axios';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
+<<<<<<< HEAD
+=======
+
+>>>>>>> otp-updates
 
 const StudentDashboard = () => {
     const [dashboardData, setDashboardData] = useState(null);

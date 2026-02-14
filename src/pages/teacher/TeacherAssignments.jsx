@@ -9,7 +9,11 @@ import Badge from '../../components/ui/Badge';
 const TeacherAssignments = () => {
     // sidebarItems removed to use default from DashboardLayout
 
+<<<<<<< HEAD
     const [activeTab, setActiveTab] = useState < 'all' | 'create' > ('all');
+=======
+    const [activeTab, setActiveTab] = useState('all');
+>>>>>>> otp-updates
 
     const assignments = [
         {

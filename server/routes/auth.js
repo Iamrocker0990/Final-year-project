@@ -2,7 +2,9 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const OTP = require('../models/OTP');
 const { protect } = require('../middleware/auth');
+const crypto = require('crypto');
 
 // Generate JWT
 const generateToken = (id) => {
@@ -11,15 +13,74 @@ const generateToken = (id) => {
     });
 };
 
+// Validation Helper
+const validateInputs = (email, password) => {
+    // Email: Standard regex
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    // Password: At least 8 characters
+    const passwordRegex = /^.{8,}$/;
+
+    if (!emailRegex.test(email)) {
+        return "Please enter a valid email address.";
+    }
+    if (password && !passwordRegex.test(password)) {
+        return "Password must be at least 8 characters long.";
+    }
+    return null;
+};
+
+// @desc    Send OTP to email
+// @route   POST /api/auth/send-otp
+// @access  Public
+router.post('/send-otp', async (req, res) => {
+    const { email } = req.body;
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        return res.status(400).json({ message: "Please enter a valid email address." });
+    }
+
+    try {
+        // Generate 6-digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        // Save to DB
+        await OTP.findOneAndUpdate(
+            { email },
+            { otp, createdAt: new Date() },
+            { upsert: true, new: true }
+        );
+
+        // In a real app, you'd send an actual email here using nodemailer.
+        console.log(`------------------------------`);
+        console.log(`OTP for ${email}: ${otp}`);
+        console.log(`------------------------------`);
+
+        res.status(200).json({ message: 'OTP sent successfully. Check server console for code.' });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
 // @desc    Register new user
 // @route   POST /api/auth/register
 // @access  Public
 router.post('/register', async (req, res) => {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, otp } = req.body;
+
+    const validationError = validateInputs(email, password);
+    if (validationError) {
+        return res.status(400).json({ message: validationError });
+    }
 
     try {
-        const userExists = await User.findOne({ email });
+        // Verify OTP
+        const otpRecord = await OTP.findOne({ email });
+        if (!otpRecord || otpRecord.otp !== otp) {
+            return res.status(400).json({ message: 'Invalid or expired OTP' });
+        }
 
+        const userExists = await User.findOne({ email });
         if (userExists) {
             return res.status(400).json({ message: 'User already exists' });
         }
@@ -30,6 +91,9 @@ router.post('/register', async (req, res) => {
             password,
             role: role || 'student',
         });
+
+        // Delete OTP after successful registration
+        await OTP.deleteOne({ email });
 
         if (user) {
             res.status(201).json({
@@ -98,4 +162,5 @@ router.get('/profile', protect, async (req, res) => {
         res.status(404).json({ message: 'User not found' });
     }
 });
+
 module.exports = router;

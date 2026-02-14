@@ -6,13 +6,16 @@ import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 
 const Assignments = () => {
+<<<<<<< HEAD
     // sidebarItems removed to use default from DashboardLayout
 
+=======
+>>>>>>> otp-updates
     const assignments = [
         {
             id: 1,
-            title: 'React Context API Implementation',
-            course: 'Advanced React Patterns',
+            title: 'React Context Theme Switcher',
+            course: 'Advanced React',
             dueDate: 'Tomorrow, 11:59 PM',
             status: 'Pending',
             score: null,

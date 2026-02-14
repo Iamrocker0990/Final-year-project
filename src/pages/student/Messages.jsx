@@ -25,7 +25,10 @@ const Messages = () => {
             text: message,
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
+<<<<<<< HEAD
 
+=======
+>>>>>>> otp-updates
         setChatHistory([...chatHistory, newMessage]);
         setMessage('');
 

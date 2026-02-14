@@ -29,5 +29,8 @@ const enrollmentSchema = new mongoose.Schema({
 
 // Prevent duplicate enrollments
 enrollmentSchema.index({ student: 1, course: 1 }, { unique: true });
+<<<<<<< HEAD
 
+=======
+>>>>>>> otp-updates
 module.exports = mongoose.model('Enrollment', enrollmentSchema);
