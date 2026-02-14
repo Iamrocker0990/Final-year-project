@@ -49,12 +49,5 @@ const courseSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     }
-<<<<<<< HEAD
-
 }, { timestamps: true }); // Automatically adds "createdAt" and "updatedAt"
-
-=======
-}, { timestamps: true }); // Automatically adds "createdAt" and "updatedAt"
-
->>>>>>> otp-updates
 module.exports = mongoose.model('Course', courseSchema);

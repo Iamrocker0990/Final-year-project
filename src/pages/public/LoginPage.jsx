@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import authService from '../../services/authService';
-import { GraduationCap, ArrowRight } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { GraduationCap, Mail, Lock, ArrowRight } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Card from '../../components/ui/Card';
@@ -10,7 +8,7 @@ import Card from '../../components/ui/Card';
 const LoginPage = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-
+    
     const [role, setRole] = useState('student');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -18,23 +16,13 @@ const LoginPage = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
-        const userInfo = localStorage.getItem('userInfo');
-        if (userInfo) {
-            const { role } = JSON.parse(userInfo);
-            if (role === 'student') navigate('/student');
-            else if (role === 'teacher') navigate('/teacher');
-            else if (role === 'admin') navigate('/admin');
-        }
-
         const roleParam = searchParams.get('role');
         if (roleParam === 'teacher') {
             setRole('teacher');
-        } else if (roleParam === 'admin') {
-            setRole('admin');
-        } else {
+        } else if (roleParam === 'student') {
             setRole('student');
         }
-    }, [searchParams, navigate]);
+    }, [searchParams]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -42,14 +30,32 @@ const LoginPage = () => {
         setIsLoading(true);
 
         try {
-            const data = await authService.login(email, password, role);
+            const response = await fetch('http://localhost:5000/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email,
+                    password,
+                }),
+            });
 
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Invalid email or password');
+            }
+
+            // Save user data and token to localStorage
+            localStorage.setItem('userInfo', JSON.stringify(data));
+
+            // Redirect based on role
+            // Use the role from the backend response to ensure consistency
             if (data.role === 'student') {
                 navigate('/student');
-            } else if (data.role === 'teacher') {
+            } else {
                 navigate('/teacher');
-            } else if (data.role === 'admin') {
-                navigate('/admin');
             }
         } catch (err) {
             setError(err.message);
@@ -59,105 +65,112 @@ const LoginPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
-            <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="sm:mx-auto sm:w-full sm:max-w-md"
-            >
-                <Link to="/" className="flex items-center justify-center space-x-3 mb-8 group">
-                    <div className="bg-primary/10 p-2.5 rounded-2xl group-hover:rotate-12 transition-transform duration-300">
+        <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+            <div className="sm:mx-auto sm:w-full sm:max-w-md">
+                <Link to="/" className="flex items-center justify-center space-x-2 mb-6">
+                    <div className="bg-primary/10 p-2 rounded-lg">
                         <GraduationCap className="h-8 w-8 text-primary" />
                     </div>
-                    <span className="text-3xl font-extrabold text-slate-900 tracking-tight">EduSync</span>
+                    <span className="text-2xl font-bold text-slate-900">EduSync</span>
                 </Link>
-                <h2 className="text-center text-3xl font-extrabold text-slate-900">
-                    Welcome Back
+                <h2 className="mt-6 text-center text-3xl font-bold text-slate-900">
+                    Welcome back
                 </h2>
-                <p className="mt-3 text-center text-slate-500 font-medium">
-                    Sign in to your dashboard to continue
+                <p className="mt-2 text-center text-sm text-slate-600">
+                    Sign in to your account to continue
                 </p>
-            </motion.div>
+            </div>
 
-            <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.1 }}
-                className="mt-10 sm:mx-auto sm:w-full sm:max-w-md"
-            >
-                <Card className="py-10 px-6 sm:px-12 border-none shadow-2xl shadow-slate-200/50">
-                    <div className="flex rounded-xl bg-slate-100 p-1.5 mb-8">
-                        {['student', 'teacher', 'admin'].map((r) => (
-                            <button
-                                key={r}
-                                type="button"
-                                onClick={() => setRole(r)}
-                                className={`flex-1 rounded-lg py-2.5 text-sm font-bold transition-all uppercase tracking-widest ${role === r
-                                    ? 'bg-white text-primary shadow-sm'
-                                    : 'text-slate-500 hover:text-slate-900'
-                                    }`}
-                            >
-                                {r}
-                            </button>
-                        ))}
+            <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+                <Card className="py-8 px-4 shadow sm:rounded-lg sm:px-10">
+                    <div className="flex rounded-md bg-slate-100 p-1 mb-6">
+                        <button
+                            type="button"
+                            onClick={() => setRole('student')}
+                            className={`flex-1 rounded-md py-2 text-sm font-medium transition-all ${role === 'student'
+                                ? 'bg-white text-slate-900 shadow-sm'
+                                : 'text-slate-500 hover:text-slate-900'
+                                }`}
+                        >
+                            Student
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setRole('teacher')}
+                            className={`flex-1 rounded-md py-2 text-sm font-medium transition-all ${role === 'teacher'
+                                ? 'bg-white text-slate-900 shadow-sm'
+                                : 'text-slate-500 hover:text-slate-900'
+                                }`}
+                        >
+                            Teacher
+                        </button>
                     </div>
 
                     {error && (
-                        <motion.div
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm font-medium text-center"
-                        >
+                        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm text-center">
                             {error}
-                        </motion.div>
+                        </div>
                     )}
 
                     <form className="space-y-6" onSubmit={handleSubmit}>
                         <Input
-                            label="Email Address"
+                            label="Email address"
                             type="email"
                             required
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            placeholder="name@example.com"
-                            className="h-12"
+                            placeholder="you@example.com"
                         />
 
                         <div>
-                            <div className="flex items-center justify-between mb-1.5">
-                                <label className="block text-sm font-bold text-slate-700 uppercase tracking-wide">Password</label>
-                                <a href="#" className="text-xs font-bold text-primary hover:underline">Forgot?</a>
-                            </div>
                             <Input
+                                label="Password"
                                 type="password"
                                 required
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="••••••••"
-                                className="h-12"
                             />
+                            <div className="flex items-center justify-end mt-1">
+                                <div className="text-sm">
+                                    <a href="#" className="font-medium text-primary hover:text-primary-hover">
+                                        Forgot your password?
+                                    </a>
+                                </div>
+                            </div>
                         </div>
 
                         <Button
                             type="submit"
-                            className="w-full h-14 text-lg shadow-lg shadow-primary/20 group"
+                            className="w-full flex justify-center"
                             isLoading={isLoading}
                         >
-                            Continue as {role.charAt(0).toUpperCase() + role.slice(1)}
-                            <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                            Sign in as {role === 'student' ? 'Student' : 'Teacher'} <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
                     </form>
 
-                    <div className="mt-10 pt-8 border-t border-slate-100 text-center">
-                        <p className="text-sm text-slate-500 font-medium">
-                            New here?{' '}
-                            <Link to={`/signup?role=${role}`} className="text-primary font-bold hover:underline">
-                                Create an account
+                    <div className="mt-6">
+                        <div className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                                <div className="w-full border-t border-slate-200" />
+                            </div>
+                            <div className="relative flex justify-center text-sm">
+                                <span className="bg-white px-2 text-slate-500">
+                                    Don't have an account?
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="mt-6">
+                            <Link to={`/signup?role=${role}`}>
+                                <Button variant="outline" className="w-full">
+                                    Create new account
+                                </Button>
                             </Link>
-                        </p>
+                        </div>
                     </div>
                 </Card>
-            </motion.div>
+            </div>
         </div>
     );
 };

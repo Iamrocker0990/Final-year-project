@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import authService from '../../services/authService';
-import { GraduationCap, ArrowRight, User, BookOpen } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { GraduationCap, ArrowRight, User, BookOpen, Lock } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Card from '../../components/ui/Card';
@@ -16,6 +14,8 @@ const SignupPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [otp, setOtp] = useState('');
+    const [showOtp, setShowOtp] = useState(false);
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
@@ -34,6 +34,35 @@ const SignupPage = () => {
         }
     }, [searchParams, navigate]);
 
+    const handleSendOtp = async () => {
+        setError('');
+        if (!email) {
+            return setError('Please enter an email address');
+        }
+
+        setIsLoading(true);
+        try {
+            const response = await fetch('http://localhost:5000/api/auth/send-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to send OTP');
+            }
+
+            setShowOtp(true);
+            alert('OTP sent to your email (Check server console for now)');
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
@@ -42,16 +71,37 @@ const SignupPage = () => {
             return setError('Passwords do not match');
         }
 
+        if (!showOtp || !otp) {
+            return setError('Please verify your email with OTP');
+        }
+
         setIsLoading(true);
 
         try {
-            const data = await authService.register({
-                name,
-                email,
-                password,
-                role
+            const response = await fetch('http://localhost:5000/api/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name,
+                    email,
+                    password,
+                    role,
+                    otp
+                }),
             });
 
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Something went wrong');
+            }
+
+            // Save user data and token to localStorage
+            localStorage.setItem('userInfo', JSON.stringify(data));
+
+            // Redirect based on role
             if (data.role === 'student') {
                 navigate('/student');
             } else {
@@ -66,11 +116,7 @@ const SignupPage = () => {
 
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
-            <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="sm:mx-auto sm:w-full sm:max-w-md"
-            >
+            <div className="sm:mx-auto sm:w-full sm:max-w-md">
                 <Link to="/" className="flex items-center justify-center space-x-3 mb-8 group">
                     <div className="bg-primary/10 p-2.5 rounded-2xl group-hover:rotate-12 transition-transform duration-300">
                         <GraduationCap className="h-8 w-8 text-primary" />
@@ -83,14 +129,9 @@ const SignupPage = () => {
                 <p className="mt-3 text-center text-slate-500 font-medium">
                     Start your learning journey today
                 </p>
-            </motion.div>
+            </div>
 
-            <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.1 }}
-                className="mt-10 sm:mx-auto sm:w-full sm:max-w-md"
-            >
+            <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-md">
                 <Card className="py-10 px-6 sm:px-12 border-none shadow-2xl shadow-slate-200/50">
                     <div className="flex gap-4 mb-8">
                         {[
@@ -113,13 +154,11 @@ const SignupPage = () => {
                     </div>
 
                     {error && (
-                        <motion.div
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
+                        <div
                             className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm font-medium"
                         >
                             {error}
-                        </motion.div>
+                        </div>
                     )}
 
                     <form className="space-y-5" onSubmit={handleSubmit}>
@@ -133,15 +172,47 @@ const SignupPage = () => {
                             className="h-12"
                         />
 
-                        <Input
-                            label="Email Address"
-                            type="email"
-                            required
-                            placeholder="name@example.com"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="h-12"
-                        />
+                        <div className="flex items-end gap-2">
+                            <div className="flex-1">
+                                <Input
+                                    label="Email Address"
+                                    type="email"
+                                    required
+                                    placeholder="name@example.com"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="h-12"
+                                    disabled={showOtp}
+                                />
+                            </div>
+                            {!showOtp && (
+                                <Button
+                                    type="button"
+                                    onClick={handleSendOtp}
+                                    isLoading={isLoading && !showOtp}
+                                    className="h-12 w-32 mb-[2px]" // Align with input
+                                >
+                                    Send OTP
+                                </Button>
+                            )}
+                        </div>
+
+                        {showOtp && (
+                            <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                                <Input
+                                    label="Enter OTP"
+                                    type="text"
+                                    required
+                                    placeholder="123456"
+                                    value={otp}
+                                    onChange={(e) => setOtp(e.target.value)}
+                                    className="h-12 tracking-widest text-center font-mono text-lg"
+                                />
+                                <p className="text-xs text-slate-500 mt-1 text-center">
+                                    Check your server console for the code
+                                </p>
+                            </div>
+                        )}
 
                         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                             <Input
@@ -165,14 +236,16 @@ const SignupPage = () => {
                             />
                         </div>
 
-                        <Button
-                            type="submit"
-                            className="w-full h-14 text-lg shadow-lg shadow-primary/20 group mt-4"
-                            isLoading={isLoading}
-                        >
-                            Create {role.charAt(0).toUpperCase() + role.slice(1)} Account
-                            <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                        </Button>
+                        {showOtp && (
+                            <Button
+                                type="submit"
+                                className="w-full h-14 text-lg shadow-lg shadow-primary/20 group mt-4"
+                                isLoading={isLoading}
+                            >
+                                Create {role.charAt(0).toUpperCase() + role.slice(1)} Account
+                                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                            </Button>
+                        )}
                     </form>
 
                     <div className="mt-10 pt-8 border-t border-slate-100 text-center">
@@ -184,7 +257,7 @@ const SignupPage = () => {
                         </p>
                     </div>
                 </Card>
-            </motion.div>
+            </div>
         </div>
     );
 };
