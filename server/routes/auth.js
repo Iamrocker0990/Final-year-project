@@ -2,36 +2,15 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-<<<<<<< HEAD
+const OTP = require('../models/OTP');
 const { protect } = require('../middleware/auth');
+const crypto = require('crypto');
 
 // Generate JWT
 const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, {
         expiresIn: '30d',
     });
-};
-
-// @desc    Register new user
-// @route   POST /api/auth/register
-// @access  Public
-router.post('/register', async (req, res) => {
-    const { name, email, password, role } = req.body;
-
-    try {
-        const userExists = await User.findOne({ email });
-
-        if (userExists) {
-            return res.status(400).json({ message: 'User already exists' });
-        }
-
-=======
-const OTP = require('../models/OTP');
-const { protect } = require('../middleware/auth');
-const crypto = require('crypto');
-
-const generateToken = (id) => {
-    return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 };
 
 // Validation Helper
@@ -51,9 +30,11 @@ const validateInputs = (email, password) => {
 };
 
 // @desc    Send OTP to email
+// @route   POST /api/auth/send-otp
+// @access  Public
 router.post('/send-otp', async (req, res) => {
     const { email } = req.body;
-    
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
         return res.status(400).json({ message: "Please enter a valid email address." });
@@ -62,7 +43,7 @@ router.post('/send-otp', async (req, res) => {
     try {
         // Generate 6-digit OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        
+
         // Save to DB
         await OTP.findOneAndUpdate(
             { email },
@@ -74,7 +55,7 @@ router.post('/send-otp', async (req, res) => {
         console.log(`------------------------------`);
         console.log(`OTP for ${email}: ${otp}`);
         console.log(`------------------------------`);
-        
+
         res.status(200).json({ message: 'OTP sent successfully. Check server console for code.' });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
@@ -82,6 +63,8 @@ router.post('/send-otp', async (req, res) => {
 });
 
 // @desc    Register new user
+// @route   POST /api/auth/register
+// @access  Public
 router.post('/register', async (req, res) => {
     const { name, email, password, role, otp } = req.body;
 
@@ -98,9 +81,10 @@ router.post('/register', async (req, res) => {
         }
 
         const userExists = await User.findOne({ email });
-        if (userExists) return res.status(400).json({ message: 'User already exists' });
+        if (userExists) {
+            return res.status(400).json({ message: 'User already exists' });
+        }
 
->>>>>>> origin/otp-updates
         const user = await User.create({
             name,
             email,
@@ -108,12 +92,9 @@ router.post('/register', async (req, res) => {
             role: role || 'student',
         });
 
-<<<<<<< HEAD
-=======
         // Delete OTP after successful registration
         await OTP.deleteOne({ email });
 
->>>>>>> origin/otp-updates
         if (user) {
             res.status(201).json({
                 _id: user._id,
@@ -122,11 +103,8 @@ router.post('/register', async (req, res) => {
                 role: user.role,
                 token: generateToken(user._id),
             });
-<<<<<<< HEAD
         } else {
             res.status(400).json({ message: 'Invalid user data' });
-=======
->>>>>>> origin/otp-updates
         }
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
@@ -134,11 +112,8 @@ router.post('/register', async (req, res) => {
 });
 
 // @desc    Authenticate a user
-<<<<<<< HEAD
 // @route   POST /api/auth/login
 // @access  Public
-=======
->>>>>>> origin/otp-updates
 router.post('/login', async (req, res) => {
     const { email, password, role } = req.body;
 
@@ -149,17 +124,12 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ message: 'Invalid email or password' });
         }
 
-<<<<<<< HEAD
         // If a role was provided by the client (student/teacher tab),
         // enforce that it matches the actual user role.
         if (role && user.role !== role) {
             return res.status(401).json({
                 message: `Please sign in as a ${user.role} instead.`,
             });
-=======
-        if (role && user.role !== role) {
-            return res.status(401).json({ message: `Please sign in as a ${user.role} instead.` });
->>>>>>> origin/otp-updates
         }
 
         res.json({
@@ -170,15 +140,11 @@ router.post('/login', async (req, res) => {
             token: generateToken(user._id),
         });
     } catch (error) {
-<<<<<<< HEAD
         console.error("🔥 LOGIN ERROR FULL:", error);
-=======
->>>>>>> origin/otp-updates
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
 
-<<<<<<< HEAD
 // @desc    Get user profile
 // @route   GET /api/auth/profile
 // @access  Private
@@ -196,7 +162,5 @@ router.get('/profile', protect, async (req, res) => {
         res.status(404).json({ message: 'User not found' });
     }
 });
+
 module.exports = router;
-=======
-module.exports = router;
->>>>>>> origin/otp-updates
