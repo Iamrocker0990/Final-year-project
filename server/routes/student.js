@@ -5,56 +5,12 @@ const { protect } = require('../middleware/auth');
 const User = require('../models/User');
 const Enrollment = require('../models/Enrollment');
 const Course = require('../models/Course');
-<<<<<<< HEAD
 const { getStudentDashboard } = require('../controllers/dashboardController');
-=======
->>>>>>> origin/otp-updates
 
 // @desc    Get student dashboard data (My Courses)
 // @route   GET /api/student/dashboard
 // @access  Private (Student)
-<<<<<<< HEAD
 router.get('/dashboard', protect, getStudentDashboard);
-=======
-router.get('/dashboard', protect, async (req, res) => {
-    try {
-        // 1. Find all enrollments for this student
-        // We use the Enrollment model to find records where 'student' matches the logged-in user
-        const enrollments = await Enrollment.find({ student: req.user._id })
-            .populate({
-                path: 'course',
-                select: 'title thumbnail description instructor',
-                populate: {
-                    path: 'instructor',
-                    select: 'name'
-                }
-            });
-
-        // 2. Format the data for the frontend
-        const myCourses = enrollments.map(enrollment => ({
-            _id: enrollment.course._id,
-            title: enrollment.course.title,
-            thumbnail: enrollment.course.thumbnail,
-            instructorName: enrollment.course.instructor.name,
-            progress: enrollment.progress,
-            completedLessons: enrollment.completedLessons
-        }));
-
-        res.json({
-            user: {
-                name: req.user.name,
-                email: req.user.email,
-                role: req.user.role
-            },
-            courses: myCourses
-        });
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server Error loading dashboard' });
-    }
-});
->>>>>>> origin/otp-updates
 
 // @desc    Get a student's progress for a course
 // @route   GET /api/student/courses/:courseId/progress

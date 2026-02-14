@@ -32,10 +32,7 @@ app.use('/api/courses', courseRoutes);
 app.use('/api/student', studentRoutes);
 app.use('/api/teachers', require('./routes/teachers'));
 app.use('/api/quiz', require('./routes/quiz'));
-<<<<<<< HEAD
 app.use('/api/admin', require('./routes/admin'));
-=======
->>>>>>> origin/otp-updates
 
 app.get('/', (req, res) => {
     res.send('EduSync API is running');
