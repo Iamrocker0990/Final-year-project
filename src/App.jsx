@@ -41,134 +41,132 @@ function App() {
   const location = useLocation();
 
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
+    <Routes location={location} key={location.pathname}>
 
-        {/* ---------- Public Routes ---------- */}
+      {/* ---------- Public Routes ---------- */}
+      <Route
+        path="/"
+        element={<LandingPage />}
+      />
+
+      <Route
+        path="/login"
+        element={<LoginPage />}
+      />
+
+      <Route
+        path="/signup"
+        element={<SignupPage />}
+      />
+
+      {/* ---------- Student Routes ---------- */}
+      <Route element={<PrivateRoute allowedRoles={['student']} />}>
         <Route
-          path="/"
-          element={<LandingPage />}
+          path="/student"
+          element={<StudentDashboard />}
         />
 
         <Route
-          path="/login"
-          element={<LoginPage />}
+          path="/student/courses"
+          element={<MyCourses />}
         />
 
         <Route
-          path="/signup"
-          element={<SignupPage />}
+          path="/student/courses/:id"
+          element={<CourseDetail />}
         />
 
-        {/* ---------- Student Routes ---------- */}
-        <Route element={<PrivateRoute allowedRoles={['student']} />}>
-          <Route
-            path="/student"
-            element={<StudentDashboard />}
-          />
+        <Route
+          path="/student/assignments"
+          element={<Assignments />}
+        />
 
-          <Route
-            path="/student/courses"
-            element={<MyCourses />}
-          />
+        <Route
+          path="/student/quizzes"
+          element={<Quizzes />}
+        />
 
-          <Route
-            path="/student/courses/:id"
-            element={<CourseDetail />}
-          />
+        <Route
+          path="/student/live-classes"
+          element={<LiveClasses />}
+        />
 
-          <Route
-            path="/student/assignments"
-            element={<Assignments />}
-          />
+        <Route
+          path="/student/progress"
+          element={<ProgressReport />}
+        />
 
-          <Route
-            path="/student/quizzes"
-            element={<Quizzes />}
-          />
+        <Route
+          path="/student/messages"
+          element={<Messages />}
+        />
 
-          <Route
-            path="/student/live-classes"
-            element={<LiveClasses />}
-          />
+        <Route
+          path="/student/settings"
+          element={<Settings />}
+        />
+      </Route>
 
-          <Route
-            path="/student/progress"
-            element={<ProgressReport />}
-          />
+      {/* ---------- Teacher Routes ---------- */}
+      <Route element={<PrivateRoute allowedRoles={['teacher']} />}>
+        <Route
+          path="/teacher"
+          element={<TeacherDashboard />}
+        />
 
-          <Route
-            path="/student/messages"
-            element={<Messages />}
-          />
+        <Route
+          path="/teacher/courses"
+          element={<TeacherCourses />}
+        />
 
-          <Route
-            path="/student/settings"
-            element={<Settings />}
-          />
-        </Route>
+        <Route
+          path="/teacher/create-course"
+          element={<CreateCourse />}
+        />
 
-        {/* ---------- Teacher Routes ---------- */}
-        <Route element={<PrivateRoute allowedRoles={['teacher']} />}>
-          <Route
-            path="/teacher"
-            element={<TeacherDashboard />}
-          />
+        <Route
+          path="/teacher/upload"
+          element={<UploadContent />}
+        />
 
-          <Route
-            path="/teacher/courses"
-            element={<TeacherCourses />}
-          />
+        <Route
+          path="/teacher/assignments"
+          element={<TeacherAssignments />}
+        />
 
-          <Route
-            path="/teacher/create-course"
-            element={<CreateCourse />}
-          />
+        <Route
+          path="/teacher/quizzes"
+          element={<TeacherQuizzes />}
+        />
 
-          <Route
-            path="/teacher/upload"
-            element={<UploadContent />}
-          />
+        <Route
+          path="/teacher/students"
+          element={<StudentsList />}
+        />
 
-          <Route
-            path="/teacher/assignments"
-            element={<TeacherAssignments />}
-          />
+        <Route
+          path="/teacher/reports"
+          element={<Reports />}
+        />
 
-          <Route
-            path="/teacher/quizzes"
-            element={<TeacherQuizzes />}
-          />
+        <Route
+          path="/teacher/messages"
+          element={<TeacherMessages />}
+        />
+      </Route>
 
-          <Route
-            path="/teacher/students"
-            element={<StudentsList />}
-          />
+      {/* ---------- Admin Routes ---------- */}
+      <Route element={<PrivateRoute allowedRoles={['admin']} />}>
+        <Route
+          path="/admin"
+          element={<AdminDashboard />}
+        />
+      </Route>
 
-          <Route
-            path="/teacher/reports"
-            element={<Reports />}
-          />
+      {/* ---------- Fallback ---------- */}
+      <Route path="*" element={<Navigate to="/" replace />} />
 
-          <Route
-            path="/teacher/messages"
-            element={<TeacherMessages />}
-          />
-        </Route>
-
-        {/* ---------- Admin Routes ---------- */}
-        <Route element={<PrivateRoute allowedRoles={['admin']} />}>
-          <Route
-            path="/admin"
-            element={<AdminDashboard />}
-          />
-        </Route>
-
-        {/* ---------- Fallback ---------- */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-
-      </Routes>
-    </AnimatePresence>
+    </Routes>
   );
 }
 

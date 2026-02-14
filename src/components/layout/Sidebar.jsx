@@ -28,7 +28,7 @@ const Sidebar = ({ items, userType }) => {
     const initials = getInitials(user?.name) || (userType === 'student' ? 'ST' : 'TC');
 
     return (
-        <aside className="w-64 border-r border-slate-100 hidden md:flex flex-col h-[calc(100vh-4rem)] sticky top-16 bg-white/50 backdrop-blur-sm">
+        <aside className="w-64 hidden md:flex flex-col h-[calc(100vh-4rem)] sticky top-16 bg-white/50 backdrop-blur-sm">
             <div className="p-6 h-full flex flex-col">
                 <div
                     className="flex items-center space-x-4 mb-10 p-2 bg-slate-50/50 rounded-2xl ring-1 ring-slate-100"

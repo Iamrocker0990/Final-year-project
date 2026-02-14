@@ -68,7 +68,7 @@ const DashboardLayout = ({ children, sidebarItems, userType, title }) => {
                                 EduSync
                             </span>
                         </Link>
-                        <div className="hidden md:flex items-center space-x-4 border-l border-slate-200 pl-8 h-6">
+                        <div className="hidden md:flex items-center space-x-4 pl-8 h-6">
                             <h1 className="text-sm font-bold text-slate-500 uppercase tracking-widest">
                                 {title}
                             </h1>
