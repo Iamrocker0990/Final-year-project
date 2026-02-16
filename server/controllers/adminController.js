@@ -24,6 +24,7 @@ const getPendingCourses = async (req, res) => {
  */
 const updateCourseStatus = async (req, res) => {
     try {
+        // Status can come from body (original way) or be set by specific handlers
         const { status } = req.body;
 
         if (!['approved', 'rejected'].includes(status)) {
@@ -37,6 +38,7 @@ const updateCourseStatus = async (req, res) => {
         }
 
         course.status = status;
+        course.actionTimestamp = Date.now();
         const updatedCourse = await course.save();
 
         res.json(updatedCourse);
@@ -46,7 +48,19 @@ const updateCourseStatus = async (req, res) => {
     }
 };
 
+const approveCourse = async (req, res) => {
+    req.body.status = 'approved';
+    await updateCourseStatus(req, res);
+};
+
+const rejectCourse = async (req, res) => {
+    req.body.status = 'rejected';
+    await updateCourseStatus(req, res);
+};
+
 module.exports = {
     getPendingCourses,
-    updateCourseStatus
+    updateCourseStatus,
+    approveCourse,
+    rejectCourse
 };

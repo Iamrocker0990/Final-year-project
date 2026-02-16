@@ -39,6 +39,18 @@ const courseService = {
             },
         });
         return response.data;
+    },
+
+    // Student: Enroll in course
+    enrollInCourse: async (courseId) => {
+        const response = await api.post(`/enrollments/${courseId}`);
+        return response.data;
+    },
+
+    // Student: Get my enrollments
+    getMyEnrollments: async () => {
+        const response = await api.get('/enrollments/my-enrollments');
+        return response.data;
     }
 };
 

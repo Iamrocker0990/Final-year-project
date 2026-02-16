@@ -1,122 +1,283 @@
 import React, { useState } from 'react';
-import { BookOpen, Users, FileText, Award, BarChart2, MessageCircle, Plus, Upload, Image as ImageIcon, Save, ArrowLeft, Loader } from 'lucide-react';
+import { BookOpen, Users, FileText, Award, BarChart2, MessageCircle, Plus, Upload, Image as ImageIcon, Save, ArrowLeft, Loader, Check, Briefcase, GraduationCap, Link as LinkIcon, AlertCircle, Trash } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
-import courseService from '../../services/courseService'; // Import service
-import axios from 'axios'; // Import axios for Cloudinary
+import Input from '../../components/ui/Input';
+import courseService from '../../services/courseService';
+import axios from 'axios';
 
 const CreateCourse = () => {
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
+    const [step, setStep] = useState(1); // 1: Basic, 2: Teacher, 3: Structure, 4: Curriculum
+    const [uploadProgress, setUploadProgress] = useState('');
+    const [lastSaved, setLastSaved] = useState(null);
 
-    // --- CLOUDINARY CONFIGURATION (REPLACE THESE!) ---
-    const CLOUD_NAME = "dwyj1vvjx"; // e.g., "dxyz123"
-    const UPLOAD_PRESET = "edusync_preset"; // e.g., "edusync_preset"
-    // -----------------------------------------------
+    // Cloudinary Config
+    const CLOUD_NAME = "dwyj1vvjx";
+    const UPLOAD_PRESET = "edusync_preset";
 
-    // 1. STATE MANAGEMENT
-    const [formData, setFormData] = useState({
+    // Form Data
+    const initialData = {
+        // Basic
         title: '',
         category: '',
         level: '',
         shortDescription: '',
         description: '',
-        duration: '',
-        price: ''
-    });
+        price: '',
+
+        // Teacher
+        experienceYears: '',
+        specialization: '',
+        portfolioLink: '',
+        certifications: '',
+
+        // Structure
+        learningOutcomes: [''],
+        estimatedDuration: '',
+        prerequisites: [''],
+        targetAudience: [''],
+
+        // Curriculum (Step 4)
+        modules: [
+            { title: 'Module 1', lessons: [{ title: '', file: null }] }
+        ]
+    };
+
+    const [formData, setFormData] = useState(initialData);
+
     const [thumbnailFile, setThumbnailFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
 
-    // 2. HANDLE TEXT INPUTS
+    // Auto-Save Logic
+    const DRAFT_KEY = 'course_creation_draft';
+
+    // Load Draft on Mount
+    React.useEffect(() => {
+        const savedDraft = localStorage.getItem(DRAFT_KEY);
+        if (savedDraft) {
+            try {
+                const parsed = JSON.parse(savedDraft);
+                // Confirm with user or just load appropriately? 
+                // For now, auto-load if it exists creates a seamless experience.
+                setFormData(prev => ({ ...prev, ...parsed.data }));
+                setStep(parsed.step || 1);
+                console.log("Draft loaded from local storage");
+            } catch (e) {
+                console.error("Failed to parse draft", e);
+            }
+        }
+    }, []);
+
+    // Save Draft on Change (Debounced simple implementation via effect dependency)
+    React.useEffect(() => {
+        const timer = setTimeout(() => {
+            const dataToSave = {
+                data: formData,
+                step: step
+            };
+            // Remove file objects before saving to avoid circular json / storage limit
+            // We can't save files in local storage easily.
+            const cleanModules = formData.modules.map(m => ({
+                ...m,
+                lessons: m.lessons.map(l => {
+                    const { file, ...rest } = l; // Exclude file
+                    return rest;
+                })
+            }));
+            dataToSave.data.modules = cleanModules;
+
+            localStorage.setItem(DRAFT_KEY, JSON.stringify(dataToSave));
+            setLastSaved(new Date());
+        }, 1000);
+
+        return () => clearTimeout(timer);
+    }, [formData, step]);
+
+
+    // Handlers
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    // 3. HANDLE FILE SELECTION
+    const handleArrayChange = (field, index, value) => {
+        const newArray = [...formData[field]];
+        newArray[index] = value;
+        setFormData(prev => ({ ...prev, [field]: newArray }));
+    };
+
+    const addArrayItem = (field) => {
+        setFormData(prev => ({ ...prev, [field]: [...prev[field], ''] }));
+    };
+
+    const removeArrayItem = (field, index) => {
+        const newArray = formData[field].filter((_, i) => i !== index);
+        setFormData(prev => ({ ...prev, [field]: newArray }));
+    };
+
     const handleFileChange = (e) => {
         if (e.target.files[0]) {
             const file = e.target.files[0];
             setThumbnailFile(file);
-            setPreviewUrl(URL.createObjectURL(file)); // Show preview immediately
+            setPreviewUrl(URL.createObjectURL(file));
         }
     };
 
-    // 4. HANDLE FORM SUBMISSION
+    // Curriculum Handlers
+    const addModule = () => {
+        setFormData(prev => ({
+            ...prev,
+            modules: [...prev.modules, { title: `Module ${prev.modules.length + 1}`, lessons: [{ title: '', file: null }] }]
+        }));
+    };
+
+    const updateModuleTitle = (mIndex, val) => {
+        const newModules = [...formData.modules];
+        newModules[mIndex].title = val;
+        setFormData(prev => ({ ...prev, modules: newModules }));
+    };
+
+    const removeModule = (mIndex) => {
+        const newModules = formData.modules.filter((_, i) => i !== mIndex);
+        setFormData(prev => ({ ...prev, modules: newModules }));
+    };
+
+    const addLesson = (mIndex) => {
+        const newModules = [...formData.modules];
+        newModules[mIndex].lessons.push({ title: '', file: null });
+        setFormData(prev => ({ ...prev, modules: newModules }));
+    };
+
+    const removeLesson = (mIndex, lIndex) => {
+        const newModules = [...formData.modules];
+        newModules[mIndex].lessons = newModules[mIndex].lessons.filter((_, i) => i !== lIndex);
+        setFormData(prev => ({ ...prev, modules: newModules }));
+    };
+
+    const updateLesson = (mIndex, lIndex, field, value) => {
+        const newModules = [...formData.modules];
+        newModules[mIndex].lessons[lIndex][field] = value;
+        setFormData(prev => ({ ...prev, modules: newModules }));
+    };
+
+    // Navigation
+    const nextStep = () => {
+        if (step === 1) {
+            if (!formData.title || !formData.description || !formData.category || !formData.level) return alert("Please fill in all required fields.");
+            if (formData.title.length < 5) return alert("Title must be at least 5 characters long.");
+            if (formData.description.length < 20) return alert("Description must be at least 20 characters long.");
+        }
+        if (step === 2) {
+            if (!formData.experienceYears || !formData.specialization) return alert("Please fill in required teacher info.");
+        }
+        if (step === 3) {
+            if (!formData.estimatedDuration) return alert("Please enter an estimated duration.");
+            const validOutcomes = formData.learningOutcomes.filter(i => i.trim());
+            if (validOutcomes.length === 0) return alert("Please add at least one learning outcome.");
+        }
+        setStep(prev => prev + 1);
+    };
+
+    const prevStep = () => setStep(prev => prev - 1);
+
+    // Submission
     const handleSave = async () => {
+        // Validate Step 4
+        const modules = formData.modules;
+        if (modules.length === 0) return alert("Please add at least one module.");
+        for (let m of modules) {
+            if (!m.title.trim()) return alert("All modules must have a title.");
+            if (m.lessons.length === 0) return alert(`Module "${m.title}" has no lessons.`);
+            for (let l of m.lessons) {
+                if (!l.title.trim()) return alert(`A lesson in "${m.title}" is missing a title.`);
+                if (!l.file) return alert(`Lesson "${l.title}" in "${m.title}" is missing a video file.`);
+            }
+        }
+
         setIsLoading(true);
+        setUploadProgress('Preparing to upload...');
 
         try {
-            // A. Check for Token (Authentication)
-            // Token check is now handled by api.js interceptor, but user check is good for role validation
             const userInfoString = localStorage.getItem('userInfo');
-            if (!userInfoString) {
-                alert("You are not logged in!");
-                navigate('/login');
-                return;
-            }
-            // Optional: User role check
-            const user = JSON.parse(userInfoString);
-            if (user.role !== 'teacher' && user.role !== 'admin') {
-                alert("Only teachers can create courses.");
-                return;
-            }
+            const { token } = userInfoString ? JSON.parse(userInfoString) : {};
 
-
-            // B. Upload Image to Cloudinary (If an image was selected)
-            // Ideally this should also be moved to a service or backend route
-            // For now, keeping it here to minimize storage complexity on backend
+            // 1. Upload Thumbnail
             let thumbnailUrl = '';
             if (thumbnailFile) {
-                try {
-                    const imageFormData = new FormData();
-                    imageFormData.append("file", thumbnailFile);
-                    imageFormData.append("upload_preset", UPLOAD_PRESET);
-                    imageFormData.append("cloud_name", CLOUD_NAME);
+                setUploadProgress('Uploading thumbnail...');
+                const imageFormData = new FormData();
+                imageFormData.append("file", thumbnailFile);
+                imageFormData.append("upload_preset", UPLOAD_PRESET);
+                imageFormData.append("cloud_name", CLOUD_NAME);
+                const res = await axios.post(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, imageFormData);
+                thumbnailUrl = res.data.secure_url;
+            }
 
-                    // Send directly to Cloudinary API (keep axios here as it's external)
-                    const res = await axios.post(
-                        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
-                        imageFormData
-                    );
+            // 2. Upload Lesson Videos
+            const finalModules = JSON.parse(JSON.stringify(modules)); // Deep copy structure
+            let totalLessons = 0;
+            modules.forEach(m => totalLessons += m.lessons.length);
+            let processedLessons = 0;
 
-                    thumbnailUrl = res.data.secure_url;
-                    console.log("Image uploaded to Cloudinary:", thumbnailUrl);
-                } catch (imgError) {
-                    console.error("Cloudinary upload failed:", imgError);
-                    alert("Image upload failed. Course will be created without a thumbnail.");
+            for (let i = 0; i < modules.length; i++) {
+                for (let j = 0; j < modules[i].lessons.length; j++) {
+                    const lesson = modules[i].lessons[j];
+                    const file = lesson.file;
+
+                    if (file) {
+                        processedLessons++;
+                        setUploadProgress(`Uploading video ${processedLessons}/${totalLessons}: ${lesson.title}...`);
+
+                        // Use our backend upload route
+                        const fd = new FormData();
+                        fd.append('video', file);
+                        const uploadRes = await axios.post('http://localhost:5000/api/courses/upload/video', fd, {
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                                'Content-Type': 'multipart/form-data',
+                            },
+                        });
+
+                        // Update final structure with URL
+                        finalModules[i].lessons[j].content = uploadRes.data.url;
+                        finalModules[i].lessons[j].type = 'video';
+                        finalModules[i].lessons[j].duration = ''; // Optional: could get from metadata
+                        delete finalModules[i].lessons[j].file; // Remove File object
+                    }
                 }
             }
 
-            // C. Prepare Data for Service
+            // 3. Create Course
+            setUploadProgress('Finalizing course...');
             const courseData = {
-                title: formData.title,
-                description: formData.description || formData.shortDescription,
-                price: formData.price,
+                ...formData,
                 thumbnail: thumbnailUrl,
-                category: formData.category,
-                level: formData.level,
-                duration: formData.duration
+                experienceYears: Number(formData.experienceYears),
+                estimatedDuration: Number(formData.estimatedDuration),
+                price: Number(formData.price || 0),
+                learningOutcomes: formData.learningOutcomes.filter(i => i.trim()),
+                prerequisites: formData.prerequisites.filter(i => i.trim()),
+                targetAudience: formData.targetAudience.filter(i => i.trim()),
+                duration: `${formData.estimatedDuration} Hours`,
+                modules: finalModules // Send the structure with URLs
             };
 
-            // D. Use Service
             await courseService.createCourse(courseData);
-
             alert('Course Submitted for Review!');
             navigate('/teacher/courses');
 
         } catch (error) {
             console.error("Error creating course:", error);
-            const errorMsg = error.response?.data?.message || 'Failed to create course.';
-            alert(errorMsg);
+            alert(`Error: ${error.response?.data?.message || error.message}`);
         } finally {
             setIsLoading(false);
+            setUploadProgress('');
         }
     };
-
-    // sidebarItems removed to use default from DashboardLayout
 
     return (
         <DashboardLayout userType="teacher" title="Create New Course">
@@ -125,150 +286,315 @@ const CreateCourse = () => {
                     <ArrowLeft className="h-4 w-4 mr-1" /> Back to My Courses
                 </Link>
 
+                <div className="flex justify-between mb-8 max-w-xl mx-auto">
+                    {[1, 2, 3, 4].map((s) => (
+                        <div key={s} className="flex flex-col items-center relative z-10">
+                            <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-bold transition-colors ${step >= s ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-200 text-slate-500'}`}>
+                                {step > s ? <Check className="h-5 w-5" /> : s}
+                            </div>
+                            <span className="hidden md:block text-xs font-medium mt-2 text-slate-500">
+                                {s === 1 ? 'Basic' : s === 2 ? 'Teacher' : s === 3 ? 'Structure' : 'Content'}
+                            </span>
+                        </div>
+                    ))}
+                </div>
+
                 <Card className="p-8">
-                    <div className="space-y-8">
-                        <div>
-                            <h2 className="text-xl font-bold text-slate-900 mb-1">Course Details</h2>
-                            <p className="text-sm text-slate-500">Basic information about your course.</p>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="md:col-span-2 space-y-1">
-                                <label className="text-sm font-medium text-slate-700">Course Title</label>
-                                <input
-                                    name="title"
-                                    value={formData.title}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 outline-none"
-                                    placeholder="e.g., Advanced React Patterns"
-                                />
-                            </div>
-
-                            <div className="space-y-1">
-                                <label className="block text-sm font-medium text-slate-700 mb-1.5">Category</label>
-                                <select
-                                    name="category"
-                                    value={formData.category}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-white"
-                                >
-                                    <option value="">Select Category</option>
-                                    <option value="Programming">Programming</option>
-                                    <option value="Design">Design</option>
-                                    <option value="Data Science">Data Science</option>
-                                    <option value="Marketing">Marketing</option>
-                                    <option value="Business">Business</option>
-                                </select>
-                            </div>
-
-                            <div className="space-y-1">
-                                <label className="block text-sm font-medium text-slate-700 mb-1.5">Level</label>
-                                <select
-                                    name="level"
-                                    value={formData.level}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-white"
-                                >
-                                    <option value="">Select Level</option>
-                                    <option value="Beginner">Beginner</option>
-                                    <option value="Intermediate">Intermediate</option>
-                                    <option value="Advanced">Advanced</option>
-                                    <option value="All Levels">All Levels</option>
-                                </select>
-                            </div>
-
-                            <div className="md:col-span-2 space-y-1">
-                                <label className="text-sm font-medium text-slate-700">Short Description</label>
-                                <input
-                                    name="shortDescription"
-                                    value={formData.shortDescription}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-2.5 rounded-lg border border-slate-200"
-                                    placeholder="Brief summary of what students will learn..."
-                                />
-                            </div>
-
-                            <div className="md:col-span-2 space-y-1">
-                                <label className="block text-sm font-medium text-slate-700 mb-1.5">Detailed Description</label>
-                                <textarea
-                                    name="description"
-                                    value={formData.description}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-2.5 rounded-lg border border-slate-200 h-32 resize-none"
-                                    placeholder="Comprehensive details about the course content..."
-                                ></textarea>
-                            </div>
-
-                            <div className="space-y-1">
-                                <label className="text-sm font-medium text-slate-700">Estimated Duration</label>
-                                <input
-                                    name="duration"
-                                    value={formData.duration}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-2.5 rounded-lg border border-slate-200"
-                                    placeholder="e.g., 10 weeks"
-                                />
-                            </div>
-
-                            <div className="space-y-1">
-                                <label className="text-sm font-medium text-slate-700">Price (Optional)</label>
-                                <input
-                                    type="number"
-                                    name="price"
-                                    value={formData.price}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-2.5 rounded-lg border border-slate-200"
-                                    placeholder="Leave empty for free courses"
-                                />
-                            </div>
-
-                            <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-slate-700 mb-1.5">Course Thumbnail</label>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    id="thumbnail-upload"
-                                    className="hidden"
-                                    onChange={handleFileChange}
-                                />
-                                <label
-                                    htmlFor="thumbnail-upload"
-                                    className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors cursor-pointer block ${previewUrl ? 'border-blue-600 bg-blue-50' : 'border-slate-300 hover:border-blue-600 hover:bg-blue-600/5'}`}
-                                >
-                                    {previewUrl ? (
-                                        <div className="relative">
-                                            <img src={previewUrl} alt="Preview" className="h-48 mx-auto object-cover rounded shadow-md" />
-                                            <p className="mt-2 text-sm text-blue-600 font-bold">Click to change image</p>
-                                        </div>
-                                    ) : (
-                                        <div>
-                                            <ImageIcon className="h-10 w-10 text-slate-400 mx-auto mb-4" />
-                                            <p className="text-sm font-medium text-slate-900">Click to upload image</p>
-                                            <p className="text-xs text-slate-500 mt-1">PNG, JPG up to 5MB (16:9 ratio recommended)</p>
-                                        </div>
-                                    )}
-                                </label>
+                    {/* STEP 1: BASIC INFO */}
+                    {step === 1 && (
+                        <div className="space-y-6 animate-in slide-in-from-right fade-in duration-300">
+                            <h2 className="text-xl font-bold text-slate-900 mb-4 border-b pb-2">Basic Information</h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="md:col-span-2">
+                                    <Input label="Course Title *" name="title" value={formData.title} onChange={handleChange} required />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Category *</label>
+                                    <select name="category" value={formData.category} onChange={handleChange} className="w-full px-4 py-3 rounded-lg border border-slate-200 shadow-sm focus:border-primary focus:ring-4 outline-none bg-white">
+                                        <option value="">Select Category</option>
+                                        <option value="Programming">Programming</option>
+                                        <option value="Design">Design</option>
+                                        <option value="Business">Business</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Level *</label>
+                                    <select name="level" value={formData.level} onChange={handleChange} className="w-full px-4 py-3 rounded-lg border border-slate-200 shadow-sm focus:border-primary focus:ring-4 outline-none bg-white">
+                                        <option value="">Select Level</option>
+                                        <option value="Beginner">Beginner</option>
+                                        <option value="Intermediate">Intermediate</option>
+                                        <option value="Advanced">Advanced</option>
+                                    </select>
+                                </div>
+                                <div className="md:col-span-2">
+                                    <Input label="Short Description" name="shortDescription" value={formData.shortDescription} onChange={handleChange} />
+                                </div>
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Detailed Description *</label>
+                                    <textarea name="description" value={formData.description} onChange={handleChange} className="w-full px-4 py-3 rounded-lg border border-slate-200 shadow-sm focus:border-primary focus:ring-4 h-32 outline-none" required></textarea>
+                                </div>
+                                <div>
+                                    <Input label="Price ($)" type="number" name="price" value={formData.price} onChange={handleChange} min="0" />
+                                </div>
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Thumbnail</label>
+                                    <input type="file" onChange={handleFileChange} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-full file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                                    {previewUrl && <img src={previewUrl} alt="Preview" className="h-32 mt-4 rounded-lg object-cover" />}
+                                </div>
                             </div>
                         </div>
+                    )}
 
-                        <div className="flex justify-end space-x-4 pt-6 border-t border-slate-100">
-                            <Button variant="outline">Save as Draft</Button>
-                            <Button onClick={handleSave} disabled={isLoading}>
+                    {/* STEP 2: TEACHER INFO */}
+                    {step === 2 && (
+                        <div className="space-y-6 animate-in slide-in-from-right fade-in duration-300">
+                            <h2 className="text-xl font-bold text-slate-900 mb-4 border-b pb-2">Teacher Qualifications</h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div><Input label="Years of Experience *" type="number" name="experienceYears" value={formData.experienceYears} onChange={handleChange} min="0" required /></div>
+                                <div><Input label="Specialization *" name="specialization" value={formData.specialization} onChange={handleChange} required /></div>
+                                <div className="md:col-span-2"><Input label="Portfolio Link" name="portfolioLink" value={formData.portfolioLink} onChange={handleChange} /></div>
+                                <div className="md:col-span-2"><Input label="Certifications" name="certifications" value={formData.certifications} onChange={handleChange} /></div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* STEP 3: STRUCTURE */}
+                    {step === 3 && (
+                        <div className="space-y-6 animate-in slide-in-from-right fade-in duration-300">
+                            <h2 className="text-xl font-bold text-slate-900 mb-4 border-b pb-2">Course Structure</h2>
+                            <Input label="Estimated Duration (Hours) *" type="number" name="estimatedDuration" value={formData.estimatedDuration} onChange={handleChange} min="0" required />
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1.5">Learning Outcomes *</label>
+                                {formData.learningOutcomes.map((item, i) => (
+                                    <div key={i} className="flex gap-2 mb-2">
+                                        <div className="flex-1"><Input value={item} onChange={(e) => handleArrayChange('learningOutcomes', i, e.target.value)} /></div>
+                                        <Button variant="outline" onClick={() => removeArrayItem('learningOutcomes', i)}>X</Button>
+                                    </div>
+                                ))}
+                                <Button variant="ghost" size="sm" onClick={() => addArrayItem('learningOutcomes')} className="text-blue-600"><Plus className="h-4 w-4 mr-1" /> Add Outcome</Button>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1.5">Prerequisites</label>
+                                {formData.prerequisites.map((item, i) => (
+                                    <div key={i} className="flex gap-2 mb-2">
+                                        <div className="flex-1"><Input value={item} onChange={(e) => handleArrayChange('prerequisites', i, e.target.value)} /></div>
+                                        <Button variant="outline" onClick={() => removeArrayItem('prerequisites', i)}>X</Button>
+                                    </div>
+                                ))}
+                                <Button variant="ghost" size="sm" onClick={() => addArrayItem('prerequisites')} className="text-blue-600"><Plus className="h-4 w-4 mr-1" /> Add Prerequisite</Button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* STEP 4: CURRICULUM */}
+                    {step === 4 && (
+                        <div className="space-y-6 animate-in slide-in-from-right fade-in duration-300">
+                            <div className="flex justify-between items-center mb-4 border-b pb-2">
+                                <h2 className="text-xl font-bold text-slate-900">Course Content</h2>
+                                <Button size="sm" onClick={addModule}><Plus className="h-4 w-4 mr-1" /> Add Module</Button>
+                            </div>
+
+                            {formData.modules.map((module, mIndex) => (
+                                <div key={mIndex} className="border rounded-lg p-4 bg-slate-50 mb-4">
+                                    <div className="flex gap-4 mb-4">
+                                        <div className="flex-1">
+                                            <Input
+                                                label={`Module ${mIndex + 1} Title`}
+                                                value={module.title}
+                                                onChange={(e) => updateModuleTitle(mIndex, e.target.value)}
+                                                placeholder="e.g. Introduction"
+                                            />
+                                        </div>
+                                        <Button variant="outline" className="text-red-500 mt-7" onClick={() => removeModule(mIndex)}><Trash className="h-4 w-4" /></Button>
+                                    </div>
+
+                                    <div className="space-y-3 pl-4 border-l-2 border-slate-200">
+                                        {module.lessons.map((lesson, lIndex) => (
+                                            <div key={lIndex} className="bg-white p-3 rounded border border-slate-200 relative">
+                                                <div className="absolute right-2 top-2">
+                                                    <Button variant="ghost" size="sm" className="text-red-400 h-6 w-6 p-0" onClick={() => removeLesson(mIndex, lIndex)}><Trash className="h-3 w-3" /></Button>
+                                                </div>
+
+                                                <div className="space-y-3 pr-8">
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        <Input
+                                                            label={`Item ${lIndex + 1} Title`}
+                                                            value={lesson.title}
+                                                            onChange={(e) => updateLesson(mIndex, lIndex, 'title', e.target.value)}
+                                                            placeholder="Title"
+                                                        />
+                                                        <div>
+                                                            <label className="block text-sm font-medium text-slate-700 mb-1.5">Type</label>
+                                                            <select
+                                                                value={lesson.type || 'video'}
+                                                                onChange={(e) => updateLesson(mIndex, lIndex, 'type', e.target.value)}
+                                                                className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                                                            >
+                                                                <option value="video">Video Lesson</option>
+                                                                <option value="assignment">Assignment</option>
+                                                                <option value="quiz">Quiz</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* VIDEO INPUTS */}
+                                                    {(lesson.type === 'video' || !lesson.type) && (
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-slate-500 mb-1">Video File *</label>
+                                                            <input
+                                                                type="file"
+                                                                accept="video/*"
+                                                                onChange={(e) => updateLesson(mIndex, lIndex, 'file', e.target.files[0])}
+                                                                className="block w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-full file:border-0 file:bg-blue-50 file:text-blue-700"
+                                                            />
+                                                            {lesson.file && <span className="text-xs text-green-600 mt-1 flex items-center"><Check className="h-3 w-3 mr-1" /> {lesson.file.name} selected</span>}
+                                                        </div>
+                                                    )}
+
+                                                    {/* ASSIGNMENT INPUTS */}
+                                                    {lesson.type === 'assignment' && (
+                                                        <div className="space-y-3 bg-slate-50 p-3 rounded text-sm">
+                                                            <Input
+                                                                label="Description"
+                                                                value={lesson.description || ''}
+                                                                onChange={(e) => updateLesson(mIndex, lIndex, 'description', e.target.value)}
+                                                                placeholder="Assignment details..."
+                                                            />
+                                                            <div className="flex gap-4">
+                                                                <Input
+                                                                    label="Max Marks"
+                                                                    type="number"
+                                                                    value={lesson.maxMarks || ''}
+                                                                    onChange={(e) => updateLesson(mIndex, lIndex, 'maxMarks', e.target.value)}
+                                                                    className="w-24"
+                                                                />
+                                                                <div className="flex-1">
+                                                                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Due Date</label>
+                                                                    <input
+                                                                        type="date"
+                                                                        className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+                                                                        value={lesson.dueDate || ''}
+                                                                        onChange={(e) => updateLesson(mIndex, lIndex, 'dueDate', e.target.value)}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* QUIZ INPUTS */}
+                                                    {lesson.type === 'quiz' && (
+                                                        <div className="space-y-3 bg-slate-50 p-3 rounded text-sm">
+                                                            <div className="flex justify-between items-center">
+                                                                <label className="font-semibold text-slate-700">Questions</label>
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="outline"
+                                                                    onClick={() => {
+                                                                        const questions = lesson.questions || [];
+                                                                        questions.push({ question: '', option1: '', option2: '', option3: '', option4: '', ans: 1 });
+                                                                        updateLesson(mIndex, lIndex, 'questions', questions);
+                                                                    }}
+                                                                >
+                                                                    + Add Question
+                                                                </Button>
+                                                            </div>
+                                                            {(lesson.questions || []).map((q, qIndex) => (
+                                                                <div key={qIndex} className="border p-2 rounded bg-white">
+                                                                    <div className="flex justify-between mb-2">
+                                                                        <span className="text-xs font-bold">Q{qIndex + 1}</span>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                const newQs = lesson.questions.filter((_, i) => i !== qIndex);
+                                                                                updateLesson(mIndex, lIndex, 'questions', newQs);
+                                                                            }}
+                                                                            className="text-red-500 text-xs hover:underline"
+                                                                        >Remove</button>
+                                                                    </div>
+                                                                    <Input
+                                                                        placeholder="Question Text"
+                                                                        value={q.question}
+                                                                        onChange={(e) => {
+                                                                            const newQs = [...lesson.questions];
+                                                                            newQs[qIndex].question = e.target.value;
+                                                                            updateLesson(mIndex, lIndex, 'questions', newQs);
+                                                                        }}
+                                                                        className="mb-2"
+                                                                    />
+                                                                    <div className="grid grid-cols-2 gap-2 mb-2">
+                                                                        {['option1', 'option2', 'option3', 'option4'].map((opt, i) => (
+                                                                            <input
+                                                                                key={opt}
+                                                                                placeholder={`Option ${i + 1}`}
+                                                                                value={q[opt]}
+                                                                                onChange={(e) => {
+                                                                                    const newQs = [...lesson.questions];
+                                                                                    newQs[qIndex][opt] = e.target.value;
+                                                                                    updateLesson(mIndex, lIndex, 'questions', newQs);
+                                                                                }}
+                                                                                className="px-2 py-1 border rounded text-xs w-full"
+                                                                            />
+                                                                        ))}
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className="text-xs">Correct Option:</span>
+                                                                        <select
+                                                                            value={q.ans}
+                                                                            onChange={(e) => {
+                                                                                const newQs = [...lesson.questions];
+                                                                                newQs[qIndex].ans = Number(e.target.value);
+                                                                                updateLesson(mIndex, lIndex, 'questions', newQs);
+                                                                            }}
+                                                                            className="text-xs border rounded p-1 w-20"
+                                                                        >
+                                                                            <option value={1}>Option 1</option>
+                                                                            <option value={2}>Option 2</option>
+                                                                            <option value={3}>Option 3</option>
+                                                                            <option value={4}>Option 4</option>
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                        <Button variant="ghost" size="sm" onClick={() => addLesson(mIndex)} className="text-blue-600 pl-0">
+                                            <Plus className="h-4 w-4 mr-1" /> Add Content Item
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))}
+
+                            {formData.modules.length === 0 && (
+                                <div className="text-center py-8 text-slate-500 italic">No modules added. Click "Add Module" to start.</div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Footer Actions */}
+                    <div className="flex justify-between pt-8 mt-4 border-t border-slate-100">
+                        {step > 1 ? (
+                            <Button variant="outline" onClick={prevStep} disabled={isLoading}>Back</Button>
+                        ) : <div></div>}
+
+                        {step < 4 ? (
+                            <Button onClick={nextStep}>Next: {step === 1 ? 'Teacher' : step === 2 ? 'Structure' : 'Content'}</Button>
+                        ) : (
+                            <Button onClick={handleSave} disabled={isLoading || uploadProgress} className="bg-green-600 hover:bg-green-700 min-w-[140px]">
                                 {isLoading ? (
-                                    <>
-                                        <Loader className="h-4 w-4 mr-2 animate-spin" /> Publishing...
-                                    </>
+                                    <><Loader className="h-4 w-4 mr-2 animate-spin" /> {uploadProgress || 'Processing...'}</>
                                 ) : (
-                                    <>
-                                        <Save className="h-4 w-4 mr-2" /> Publish Course
-                                    </>
+                                    <><Save className="h-4 w-4 mr-2" /> Publish Course</>
                                 )}
                             </Button>
-                        </div>
-                    </div >
-                </Card >
-            </div >
-        </DashboardLayout >
+                        )}
+                    </div>
+                </Card>
+            </div>
+        </DashboardLayout>
     );
 };
 

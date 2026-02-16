@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import Card from '../ui/Card';
+import Button from '../ui/Button';
+import { PlusCircle, HelpCircle, CheckCircle } from 'lucide-react';
 
 const AddQuestion = ({ onAddQuestion }) => {
   const [questionData, setQuestionData] = useState({
@@ -36,65 +39,76 @@ const AddQuestion = ({ onAddQuestion }) => {
   };
 
   return (
-    <div className="add-question-form card">
-      <h4>Add Question Details</h4>
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
+    <Card className="p-8 border-l-4 border-l-blue-500">
+      <div className="flex items-center mb-6">
+        <div className="h-10 w-10 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600 mr-3">
+          <HelpCircle className="h-5 w-5" />
+        </div>
+        <h4 className="text-lg font-bold text-slate-900">Add New Question</h4>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div>
+          <label className="label">Question Text</label>
           <input
             type="text"
             name="question"
-            placeholder="Enter Question"
+            placeholder="e.g. What is the capital of France?"
             value={questionData.question}
             onChange={handleChange}
+            className="input-field"
             required
           />
         </div>
-        <div className="options-grid">
-          <input
-            type="text"
-            name="option1"
-            placeholder="Option 1"
-            value={questionData.option1}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="text"
-            name="option2"
-            placeholder="Option 2"
-            value={questionData.option2}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="text"
-            name="option3"
-            placeholder="Option 3"
-            value={questionData.option3}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="text"
-            name="option4"
-            placeholder="Option 4"
-            value={questionData.option4}
-            onChange={handleChange}
-            required
-          />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {[1, 2, 3, 4].map((num) => (
+            <div key={num}>
+              <label className="label text-xs uppercase tracking-wide text-slate-500 mb-1">Option {num}</label>
+              <div className="relative">
+                <div className={`absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 rounded-full border flex items-center justify-center text-xs font-bold ${questionData.ans === num ? 'border-primary text-primary bg-primary/10' : 'border-slate-300 text-slate-400'}`}>
+                  {num}
+                </div>
+                <input
+                  type="text"
+                  name={`option${num}`}
+                  placeholder={`Option ${num} text`}
+                  value={questionData[`option${num}`]}
+                  onChange={handleChange}
+                  className={`input-field pl-10 ${questionData.ans === num ? 'border-primary bg-primary/5' : ''}`}
+                  required
+                />
+              </div>
+            </div>
+          ))}
         </div>
-        <div className="form-group select-group">
-          <label>Correct Answer Index:</label>
-          <select name="ans" value={questionData.ans} onChange={handleChange}>
-            <option value={1}>Option 1</option>
-            <option value={2}>Option 2</option>
-            <option value={3}>Option 3</option>
-            <option value={4}>Option 4</option>
-          </select>
+
+        <div>
+          <label className="label">Correct Answer</label>
+          <div className="flex space-x-4">
+            {[1, 2, 3, 4].map((num) => (
+              <div
+                key={num}
+                onClick={() => setQuestionData(prev => ({ ...prev, ans: num }))}
+                className={`flex-1 p-3 rounded-lg border cursor-pointer transition-all flex items-center justify-center ${questionData.ans === num
+                    ? 'bg-green-600 text-white border-green-600 shadow-md shadow-green-200 transform scale-105'
+                    : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                  }`}
+              >
+                {questionData.ans === num && <CheckCircle className="h-4 w-4 mr-2" />}
+                <span className="font-bold">Option {num}</span>
+              </div>
+            ))}
+          </div>
         </div>
-        <button type="submit" className="btn add-btn">Add Question to Quiz</button>
+
+        <div className="pt-4 border-t border-slate-100 flex justify-end">
+          <Button type="submit" className="bg-primary text-white hover:bg-primary/90">
+            <PlusCircle className="h-4 w-4 mr-2" /> Add Question
+          </Button>
+        </div>
       </form>
-    </div>
+    </Card>
   );
 };
 

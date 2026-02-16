@@ -85,28 +85,94 @@ const getCourseById = async (req, res) => {
  * @route   POST /api/courses
  * @access  Private/Teacher
  */
+const Assignment = require('../models/Assignment');
+const Quiz = require('../models/Quiz');
+
 const createCourse = async (req, res) => {
     try {
-        const { title, description, thumbnail, price, category, level, duration } = req.body;
+        console.log("Create Course Body:", JSON.stringify(req.body, null, 2));
+        const {
+            title, description, thumbnail, price, category, level, duration,
+            shortDescription, experienceYears, specialization, portfolioLink, certifications,
+            learningOutcomes, estimatedDuration, prerequisites, targetAudience,
+            modules // Get modules from body
+        } = req.body;
 
+        // 1. Create the Course first
         const course = new Course({
             title,
             description,
+            shortDescription,
             thumbnail,
             price,
             category,
             level,
             duration,
-            instructor: req.user._id, // Legacy support
-            createdBy: req.user._id,  // New field
-            status: 'pending',        // Default status
-            modules: []
+            experienceYears,
+            specialization,
+            portfolioLink,
+            certifications,
+            learningOutcomes,
+            estimatedDuration,
+            prerequisites,
+            targetAudience,
+            instructor: req.user._id,
+            createdBy: req.user._id,
+            status: 'pending',
+            modules: [] // We will populate this next
         });
 
-        const createdCourse = await course.save();
-        res.status(201).json(createdCourse);
+        const savedCourse = await course.save();
+
+        // 2. Process Modules and Lessons
+        if (modules && modules.length > 0) {
+            const processedModules = [];
+
+            for (const m of modules) {
+                const processedLessons = [];
+                for (const l of m.lessons) {
+                    let content = l.content; // Default for video (URL)
+
+                    if (l.type === 'quiz') {
+                        // Create Quiz Document
+                        const newQuiz = new Quiz({
+                            title: l.title,
+                            course: savedCourse._id,
+                            instructor: req.user._id,
+                            questions: l.questions || [],
+                            timeLimit: 30, // Default or from input
+                            totalMarks: l.questions ? l.questions.length * 10 : 100 // Simple logic
+                        });
+                        const savedQuiz = await newQuiz.save();
+                        content = savedQuiz._id.toString();
+                    }
+
+                    processedLessons.push({
+                        title: l.title,
+                        type: l.type,
+                        content: content,
+                        duration: l.duration || ''
+                    });
+                }
+
+                processedModules.push({
+                    title: m.title,
+                    lessons: processedLessons
+                });
+            }
+
+            // Update course with processed modules
+            savedCourse.modules = processedModules;
+            await savedCourse.save();
+        }
+
+        res.status(201).json(savedCourse);
     } catch (error) {
         console.error('Error creating course:', error);
+        if (error.name === 'ValidationError') {
+            const messages = Object.values(error.errors).map(val => val.message);
+            return res.status(400).json({ message: messages.join(', ') });
+        }
         res.status(400).json({ message: error.message || 'Invalid course data' });
     }
 };

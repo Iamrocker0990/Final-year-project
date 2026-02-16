@@ -122,7 +122,12 @@ const AdminDashboard = () => {
                                     >
                                         <X className="h-4 w-4 mr-2" /> Reject
                                     </Button>
-                                    <Button variant="ghost">View Details</Button>
+                                    <Button
+                                        variant="ghost"
+                                        onClick={() => navigate(`/admin/course/${course._id}/review`)}
+                                    >
+                                        View Details
+                                    </Button>
                                 </div>
                             </div>
                         </Card>

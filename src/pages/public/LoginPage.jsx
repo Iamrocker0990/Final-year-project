@@ -8,7 +8,7 @@ import Card from '../../components/ui/Card';
 const LoginPage = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    
+
     const [role, setRole] = useState('student');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -16,13 +16,23 @@ const LoginPage = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
+        // Redirect if already logged in
+        const userInfo = localStorage.getItem('userInfo');
+        const token = localStorage.getItem('token');
+        if (userInfo && token) {
+            const user = JSON.parse(userInfo);
+            if (user.role === 'student') navigate('/student');
+            else if (user.role === 'teacher') navigate('/teacher');
+            else if (user.role === 'admin') navigate('/admin');
+        }
+
         const roleParam = searchParams.get('role');
         if (roleParam === 'teacher') {
             setRole('teacher');
         } else if (roleParam === 'student') {
             setRole('student');
         }
-    }, [searchParams]);
+    }, [searchParams, navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -49,6 +59,7 @@ const LoginPage = () => {
 
             // Save user data and token to localStorage
             localStorage.setItem('userInfo', JSON.stringify(data));
+            localStorage.setItem('token', data.token);
 
             // Redirect based on role
             // Use the role from the backend response to ensure consistency
@@ -168,6 +179,11 @@ const LoginPage = () => {
                                 </Button>
                             </Link>
                         </div>
+                    </div>
+                    <div className="mt-6 text-center">
+                        <Link to="/admin/login" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">
+                            Admin Access
+                        </Link>
                     </div>
                 </Card>
             </div>

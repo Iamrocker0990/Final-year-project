@@ -24,6 +24,15 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: '',
     },
+    instituteName: {
+        type: String,
+        default: '',
+    },
+    accountStatus: {
+        type: String,
+        enum: ['ACTIVE', 'BLOCKED'],
+        default: 'ACTIVE',
+    },
     enrolledCourses: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Course',

@@ -2,12 +2,20 @@ import { Navigate, Outlet } from 'react-router-dom';
 
 const getUserFromStorage = () => {
   const userInfoString = localStorage.getItem('userInfo');
-  if (!userInfoString) return null;
+  const token = localStorage.getItem('token');
+
+  if (!userInfoString || !token) {
+    // Ensure clean slate if one is missing
+    localStorage.removeItem('userInfo');
+    localStorage.removeItem('token');
+    return null;
+  }
 
   try {
     return JSON.parse(userInfoString);
   } catch {
     localStorage.removeItem('userInfo');
+    localStorage.removeItem('token');
     return null;
   }
 };
@@ -17,14 +25,16 @@ const PrivateRoute = ({ allowedRoles }) => {
   const user = getUserFromStorage();
 
   // 2. Not Logged In or malformed data? -> Go to Login
-  if (!user || !user.role || !user.token) {
+  if (!user || !user.role) {
     return <Navigate to="/login" replace />;
   }
 
   const { role } = user;
 
   // 3. Wrong Role? -> Redirect to their correct home
+  // 3. Wrong Role? -> Redirect to their correct home
   if (allowedRoles && !allowedRoles.includes(role)) {
+    if (role === 'admin') return <Navigate to="/admin" replace />;
     return <Navigate to={role === 'student' ? '/student' : '/teacher'} replace />;
   }
 

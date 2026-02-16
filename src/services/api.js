@@ -23,12 +23,25 @@ api.interceptors.request.use(
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response && error.response.status === 401) {
-            // Token invalid or expired
-            localStorage.removeItem('token');
-            localStorage.removeItem('userInfo');
-            // Optional: Redirect to login
-            // window.location.href = '/login'; 
+        if (error.response) {
+            // Log full error details for debugging
+            console.error("API Error Response:", {
+                status: error.response.status,
+                data: error.response.data,
+                headers: error.response.headers
+            });
+
+            if (error.response.status === 401) {
+                // Token invalid or expired
+                localStorage.removeItem('token');
+                localStorage.removeItem('userInfo');
+                // Optional: Redirect to login
+                // window.location.href = '/login'; 
+            }
+        } else if (error.request) {
+            console.error("API No Response:", error.request);
+        } else {
+            console.error("API Request Setup Error:", error.message);
         }
         return Promise.reject(error);
     }

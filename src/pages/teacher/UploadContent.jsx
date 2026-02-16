@@ -16,7 +16,6 @@ const UploadContent = () => {
     const [selectedCourse, setSelectedCourse] = useState('');
     const [moduleTitle, setModuleTitle] = useState('Module 1');
     const [lessonTitle, setLessonTitle] = useState('');
-    const [videoUrl, setVideoUrl] = useState('');
     const [uploadedFile, setUploadedFile] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
@@ -25,7 +24,6 @@ const UploadContent = () => {
     const onDrop = React.useCallback((acceptedFiles) => {
         if (acceptedFiles.length > 0) {
             setUploadedFile(acceptedFiles[0]);
-            setVideoUrl('');
         }
     }, []);
 
@@ -70,6 +68,10 @@ const UploadContent = () => {
                 setError('Lesson title is required');
                 return;
             }
+            if (!uploadedFile) {
+                setError('Please upload a video file for this lesson');
+                return;
+            }
 
             const userInfoString = localStorage.getItem('userInfo');
             if (!userInfoString) {
@@ -78,24 +80,16 @@ const UploadContent = () => {
             }
             const { token } = JSON.parse(userInfoString);
 
-            let contentUrl = videoUrl;
-
-            if (!contentUrl && uploadedFile) {
-                const fd = new FormData();
-                fd.append('video', uploadedFile);
-                const uploadRes = await axios.post('http://localhost:5000/api/courses/upload/video', fd, {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'multipart/form-data',
-                    },
-                });
-                contentUrl = uploadRes.data.url;
-            }
-
-            if (!contentUrl) {
-                setError('Upload a video or provide a video URL');
-                return;
-            }
+            // Upload Video
+            const fd = new FormData();
+            fd.append('video', uploadedFile);
+            const uploadRes = await axios.post('http://localhost:5000/api/courses/upload/video', fd, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            const contentUrl = uploadRes.data.url;
 
             await axios.post(
                 `http://localhost:5000/api/courses/${selectedCourse}/lessons`,
@@ -111,7 +105,6 @@ const UploadContent = () => {
 
             setSuccess('Lesson added successfully');
             setLessonTitle('');
-            setVideoUrl('');
             setUploadedFile(null);
         } catch (err) {
             console.error(err);
@@ -130,7 +123,7 @@ const UploadContent = () => {
                     <Card className="p-6">
                         <h3 className="font-bold text-slate-900 mb-4">Select Course</h3>
                         <select
-                            className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none bg-white mb-6"
+                            className="w-full px-4 py-3 rounded-lg border border-slate-200 shadow-sm focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none bg-white mb-6 hover:border-slate-300 transition-all duration-200 cursor-pointer"
                             value={selectedCourse}
                             onChange={(e) => setSelectedCourse(e.target.value)}
                         >
@@ -177,22 +170,11 @@ const UploadContent = () => {
 
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-3">Content Type</label>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    {[
-                                        { icon: Video, label: 'Video' },
-                                        { icon: LinkIcon, label: 'Link (optional fallback)' },
-                                    ].map((type, index) => (
-                                        <div
-                                            key={index}
-                                            className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${index === 0
-                                                ? 'border-primary bg-primary/5 text-primary'
-                                                : 'border-slate-200 hover:border-primary/50 hover:bg-slate-50 text-slate-600'
-                                                }`}
-                                        >
-                                            <type.icon className="h-6 w-6 mb-2" />
-                                            <span className="text-sm font-medium text-center">{type.label}</span>
-                                        </div>
-                                    ))}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="flex flex-col items-center justify-center p-4 rounded-xl border-2 border-primary bg-primary/5 text-primary transition-all">
+                                        <Video className="h-6 w-6 mb-2" />
+                                        <span className="text-sm font-medium text-center">Video Lesson</span>
+                                    </div>
                                 </div>
                             </div>
 
@@ -224,16 +206,6 @@ const UploadContent = () => {
                                     </button>
                                 </div>
                             )}
-
-                            <Input
-                                label="Or paste a hosted video URL (optional)"
-                                placeholder="https://cdn.example.com/video.mp4"
-                                value={videoUrl}
-                                onChange={(e) => {
-                                    setVideoUrl(e.target.value);
-                                    setUploadedFile(null);
-                                }}
-                            />
 
                             {error && (
                                 <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">

@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { GraduationCap, Bell, Search, LogOut, Settings } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import Sidebar from './Sidebar';
-import { studentSidebarItems, teacherSidebarItems } from '../../config/sidebarConfig';
+import { studentSidebarItems, teacherSidebarItems, adminSidebarItems } from '../../config/sidebarConfig';
 
 const getUserFromStorage = () => {
     const userInfoString = localStorage.getItem('userInfo');
@@ -31,14 +31,37 @@ const DashboardLayout = ({ children, sidebarItems, userType, title }) => {
     const dropdownRef = useRef(null);
 
     const user = getUserFromStorage();
-    const displayName = user?.name || (userType === 'student' ? 'Student' : 'Teacher');
-    const initials = getInitials(user?.name) || (userType === 'student' ? 'ST' : 'TC');
+    let defaultDisplayName = 'User';
+    let defaultInitials = 'US';
 
-    const defaultSidebarItems = userType === 'student' ? studentSidebarItems : teacherSidebarItems;
+    if (userType === 'student') {
+        defaultDisplayName = 'Student';
+        defaultInitials = 'ST';
+    } else if (userType === 'teacher') {
+        defaultDisplayName = 'Teacher';
+        defaultInitials = 'TC';
+    } else if (userType === 'admin') {
+        defaultDisplayName = 'Admin';
+        defaultInitials = 'AD';
+    }
+
+    const displayName = user?.name || defaultDisplayName;
+    const initials = getInitials(user?.name) || defaultInitials;
+
+    let defaultSidebarItems;
+    if (userType === 'student') {
+        defaultSidebarItems = studentSidebarItems;
+    } else if (userType === 'admin') {
+        defaultSidebarItems = adminSidebarItems;
+    } else {
+        defaultSidebarItems = teacherSidebarItems;
+    }
+
     const items = sidebarItems || defaultSidebarItems;
 
     const handleLogout = () => {
         localStorage.removeItem('userInfo');
+        localStorage.removeItem('token');
         navigate('/login');
     };
 

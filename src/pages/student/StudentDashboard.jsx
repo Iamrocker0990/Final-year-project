@@ -169,7 +169,7 @@ const StudentDashboard = () => {
                                     <h4 className="text-lg font-bold mb-4 leading-tight">Advanced React Architecture with Sarah</h4>
                                     <div className="flex items-center justify-between">
                                         <span className="text-sm font-medium">Starts in 45m</span>
-                                        <Button size="sm" className="bg-white text-primary hover:bg-slate-50 border-none px-4 py-1 h-8 text-xs font-bold">Set Reminder</Button>
+                                        <Button size="sm" className=" text-primary hover:bg-slate-50 border-none px-4 py-1 h-8 text-xs font-bold">Set Reminder</Button>
                                     </div>
                                 </div>
                             </div>

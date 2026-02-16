@@ -1,11 +1,11 @@
-import { BookOpen, Video, FileText, BarChart2, Award, MessageCircle, Settings, LayoutDashboard, PlusCircle, Upload, Users, FileBarChart } from 'lucide-react';
+import { BookOpen, Video, FileText, BarChart2, Award, MessageCircle, Settings, LayoutDashboard, PlusCircle, Upload, Users, FileBarChart, Search } from 'lucide-react';
 
 export const studentSidebarItems = [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/student' },
-    { icon: BookOpen, label: 'My Courses', href: '/student/courses' },
+    { icon: Search, label: 'Browse Courses', href: '/student/catalog' }, // New Link
+    { icon: BookOpen, label: 'My Learning', href: '/student/learn' },   // Updated Link
     { icon: Video, label: 'Live Classes', href: '/student/live-classes' },
     { icon: FileText, label: 'Assignments', href: '/student/assignments' },
-    { icon: Award, label: 'Quizzes', href: '/student/quizzes' },
     { icon: BarChart2, label: 'Progress', href: '/student/progress' },
     { icon: MessageCircle, label: 'Messages', href: '/student/messages' },
     { icon: Settings, label: 'Settings', href: '/student/settings' },
@@ -21,4 +21,8 @@ export const teacherSidebarItems = [
     { icon: Users, label: 'Students', href: '/teacher/students' },
     { icon: FileBarChart, label: 'Reports', href: '/teacher/reports' },
     { icon: MessageCircle, label: 'Messages', href: '/teacher/messages' },
+];
+
+export const adminSidebarItems = [
+    { icon: LayoutDashboard, label: 'Dashboard', href: '/admin' },
 ];

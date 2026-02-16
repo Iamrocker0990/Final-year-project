@@ -28,7 +28,16 @@ import TeacherQuizzes from './pages/teacher/TeacherQuizzes';
 import StudentsList from './pages/teacher/StudentsList';
 import Reports from './pages/teacher/Reports';
 import TeacherMessages from './pages/teacher/TeacherMessages';
+import CourseContent from './pages/teacher/CourseContent';
+import CreateAssignment from './pages/teacher/CreateAssignment';
+import CreateQuiz from './pages/teacher/CreateQuiz';
 import AdminDashboard from './pages/admin/AdminDashboard'; // Import AdminDashboard
+import AdminLogin from './pages/admin/AdminLogin'; // Import AdminLogin
+import AdminCourseReview from './pages/admin/AdminCourseReview'; // Import AdminCourseReview
+import StudentCourseList from './pages/student/StudentCourseList'; // Import StudentCourseList
+import MyEnrollments from './pages/student/MyEnrollments'; // Import MyEnrollments
+import TakeQuiz from './pages/student/TakeQuiz';
+import AssignmentSubmission from './pages/student/AssignmentSubmission';
 
 // Layout
 // import PageTransition from './components/layout/PageTransition'; // Removed in favor of minimalistic transitions
@@ -41,7 +50,7 @@ function App() {
   const location = useLocation();
 
   return (
-    <Routes location={location} key={location.pathname}>
+    <Routes location={location}>
 
       {/* ---------- Public Routes ---------- */}
       <Route
@@ -105,6 +114,26 @@ function App() {
           path="/student/settings"
           element={<Settings />}
         />
+
+        <Route
+          path="/student/catalog"
+          element={<StudentCourseList />}
+        />
+
+        <Route
+          path="/student/learn"
+          element={<MyEnrollments />}
+        />
+
+        <Route
+          path="/student/quiz/:id"
+          element={<TakeQuiz />}
+        />
+
+        <Route
+          path="/student/assignment/:id"
+          element={<AssignmentSubmission />}
+        />
       </Route>
 
       {/* ---------- Teacher Routes ---------- */}
@@ -153,13 +182,40 @@ function App() {
           path="/teacher/messages"
           element={<TeacherMessages />}
         />
+        <Route
+          path="/teacher/messages"
+          element={<TeacherMessages />}
+        />
+
+        <Route
+          path="/teacher/course/:courseId/content"
+          element={<CourseContent />}
+        />
+
+        <Route
+          path="/teacher/course/:courseId/assignments/create"
+          element={<CreateAssignment />}
+        />
+        <Route
+          path="/teacher/course/:courseId/quiz/create"
+          element={<CreateQuiz />}
+        />
       </Route>
 
       {/* ---------- Admin Routes ---------- */}
+      <Route
+        path="/admin/login"
+        element={<AdminLogin />}
+      />
+
       <Route element={<PrivateRoute allowedRoles={['admin']} />}>
         <Route
           path="/admin"
           element={<AdminDashboard />}
+        />
+        <Route
+          path="/admin/course/:id/review"
+          element={<AdminCourseReview />}
         />
       </Route>
 

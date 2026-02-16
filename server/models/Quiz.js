@@ -12,8 +12,11 @@ const QuestionSchema = new mongoose.Schema({
 const QuizSchema = new mongoose.Schema({
   title: { type: String, required: true },
   questions: [QuestionSchema],
-  instructor: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
+  instructor: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true },
+  timeLimit: { type: Number, default: 30 }, // in minutes
+  totalMarks: { type: Number, default: 100 },
+  passingMarks: { type: Number, default: 40 },
   createdAt: { type: Date, default: Date.now },
 });
 

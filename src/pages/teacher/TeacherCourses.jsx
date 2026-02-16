@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import courseService from '../../services/courseService'; // Import service
 import { BookOpen, Users, FileText, Award, BarChart2, MessageCircle, Plus, Upload, MoreVertical, Edit, Trash, Eye } from 'lucide-react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
@@ -9,6 +9,7 @@ import Badge from '../../components/ui/Badge';
 
 const TeacherCourses = () => {
     // sidebarItems removed to use default from DashboardLayout
+    const navigate = useNavigate();
 
     const [courses, setCourses] = React.useState([]);
     const [loading, setLoading] = React.useState(true);
@@ -85,7 +86,7 @@ const TeacherCourses = () => {
                             {courses.map((course) => (
                                 <tr key={course.id} className="hover:bg-slate-50 transition-colors">
                                     <td className="px-6 py-4">
-                                        <div className="flex items-center space-x-3">
+                                        <div className="flex items-center space-x-3 cursor-pointer" onClick={() => navigate(`/teacher/course/${course.id}/content`)}>
                                             <img src={course.image} alt="" className="h-10 w-10 rounded-lg object-cover" />
                                             <span className="font-medium text-slate-900">{course.title}</span>
                                         </div>
@@ -100,8 +101,12 @@ const TeacherCourses = () => {
                                     <td className="px-6 py-4 text-slate-600 text-sm">{course.lastUpdated}</td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end space-x-2">
-                                            <button className="p-1 text-slate-400 hover:text-primary transition-colors" title="View">
-                                                <Eye className="h-4 w-4" />
+                                            <button
+                                                className="p-1 text-slate-400 hover:text-primary transition-colors"
+                                                title="Manage Content"
+                                                onClick={() => navigate(`/teacher/course/${course.id}/content`)}
+                                            >
+                                                <BookOpen className="h-4 w-4" />
                                             </button>
                                             <button className="p-1 text-slate-400 hover:text-primary transition-colors" title="Edit">
                                                 <Edit className="h-4 w-4" />

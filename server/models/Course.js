@@ -19,8 +19,16 @@ const moduleSchema = new mongoose.Schema({
 
 // 3. The Main Course Schema (The Book)
 const courseSchema = new mongoose.Schema({
-    title: { type: String, required: true },
-    description: { type: String, required: true },
+    title: {
+        type: String,
+        required: true,
+        minlength: [5, 'Title must be at least 5 characters long']
+    },
+    description: {
+        type: String,
+        required: true,
+        minlength: [20, 'Description must be at least 20 characters long']
+    },
 
     // LINKING: This connects the course to a specific Instructor (User)
     // "ref: 'User'" tells Mongoose to look in the User collection for this ID.
@@ -33,21 +41,68 @@ const courseSchema = new mongoose.Schema({
     thumbnail: { type: String, default: '' }, // URL to the image
     modules: [moduleSchema], // The list of chapters defined above
 
-    price: { type: Number, default: 0 },
+    price: {
+        type: Number,
+        default: 0,
+        min: [0, 'Price must be a positive number']
+    },
     category: { type: String, required: true },
     level: { type: String, required: true },
     duration: { type: String, required: true },
 
-    // COURSE LIFECYCLE & RBAC
+    // Teacher Info (Snapshot at creation or link to profile)
+    experienceYears: {
+        type: Number,
+        required: true,
+        min: 0
+    },
+    specialization: {
+        type: String,
+        required: true
+    },
+    portfolioLink: {
+        type: String,
+        // match: [
+        //     /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/,
+        //     'Please use a valid URL'
+        // ]
+    },
+    certifications: {
+        type: String
+    },
+
+    // Course Structure
+    learningOutcomes: [{
+        type: String,
+        required: true
+    }],
+    prerequisites: [{
+        type: String
+    }],
+    targetAudience: [{
+        type: String
+    }],
+    estimatedDuration: {
+        type: Number, // in hours
+        required: true,
+        min: 0
+    },
+    modulesCount: {
+        type: Number,
+        default: 0
+    },
+
+    // Status Timeline
+    actionTimestamp: {
+        type: Date // When it was approved/rejected
+    },
+
+    // 4. Status (Admin Approval)
     status: {
         type: String,
         enum: ['pending', 'approved', 'rejected'],
         default: 'pending'
-    },
-    createdBy: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
     }
-}, { timestamps: true }); // Automatically adds "createdAt" and "updatedAt"
+}, { timestamps: true });
+
 module.exports = mongoose.model('Course', courseSchema);

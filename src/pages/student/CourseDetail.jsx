@@ -7,6 +7,7 @@ import axios from 'axios';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
+import Badge from '../../components/ui/Badge';
 import CertificateTemplate from '../../components/certificate/CertificateTemplate';
 
 const CourseDetail = () => {
@@ -21,6 +22,8 @@ const CourseDetail = () => {
     const [error, setError] = useState('');
     const [progress, setProgress] = useState(0);
     const [completedLessons, setCompletedLessons] = useState([]);
+    const [assignments, setAssignments] = useState([]);
+    const [quizzes, setQuizzes] = useState([]);
 
     // sidebarItems removed to use default from DashboardLayout
 
@@ -53,6 +56,18 @@ const CourseDetail = () => {
                 );
                 setProgress(progressRes.data.progress || 0);
                 setCompletedLessons(progressRes.data.completedLessons || []);
+
+                // Fetch Assignments
+                const assignRes = await axios.get(`http://localhost:5000/api/assignments/course/${id}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setAssignments(assignRes.data);
+
+                // Fetch Quizzes
+                const quizRes = await axios.get(`http://localhost:5000/api/quiz/course/${id}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setQuizzes(quizRes.data);
 
                 setLoading(false);
             } catch (err) {
@@ -118,7 +133,7 @@ const CourseDetail = () => {
 
     if (loading) {
         return (
-            <DashboardLayout sidebarItems={sidebarItems} userType="student" title="Loading course">
+            <DashboardLayout userType="student" title="Loading course">
                 <div className="flex justify-center items-center h-64">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
                 </div>
@@ -128,7 +143,7 @@ const CourseDetail = () => {
 
     if (error || !course) {
         return (
-            <DashboardLayout sidebarItems={sidebarItems} userType="student" title="Course">
+            <DashboardLayout userType="student" title="Course">
                 <div className="p-6 text-red-600">{error || 'Course not found'}</div>
             </DashboardLayout>
         );
@@ -146,13 +161,24 @@ const CourseDetail = () => {
                     {/* Video Player */}
                     <div className="bg-slate-900 rounded-xl overflow-hidden aspect-video mb-6 relative">
                         {lesson?.content ? (
-                            <video key={lesson._id} className="w-full h-full" controls src={lesson.content} />
+                            <video
+                                key={lesson._id}
+                                className="w-full h-full"
+                                controls
+                                src={lesson.content}
+                                onError={(e) => console.error("Video Error:", e.target.error, lesson.content)}
+                            >
+                                <p className="text-white p-4">
+                                    Your browser cannot play this video.
+                                    <a href={lesson.content} target="_blank" rel="noreferrer" className="text-blue-400 underline ml-1">Download it</a> instead.
+                                </p>
+                            </video>
                         ) : (
                             <div className="absolute inset-0 flex items-center justify-center text-white">
                                 <PlayCircle className="h-16 w-16 opacity-70" />
                             </div>
                         )}
-                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 pointer-events-none">
                             <h2 className="text-white text-xl font-bold">{lesson?.title || 'Select a lesson'}</h2>
                             <p className="text-slate-300 text-sm">
                                 {module?.title || ''} • {lesson?.duration || ''}
@@ -194,12 +220,12 @@ const CourseDetail = () => {
 
                     {/* Tabs */}
                     <div className="mb-6 border-b border-slate-200">
-                        <div className="flex space-x-8">
-                            {['Overview', 'Discussion'].map((tab) => (
+                        <div className="flex space-x-8 overflow-x-auto">
+                            {['Overview', 'Assignments', 'Quizzes', 'Discussion'].map((tab) => (
                                 <button
                                     key={tab}
                                     onClick={() => setActiveTab(tab.toLowerCase())}
-                                    className={`pb-4 text-sm font-medium transition-colors relative ${activeTab === tab.toLowerCase()
+                                    className={`pb-4 text-sm font-medium transition-colors relative whitespace-nowrap ${activeTab === tab.toLowerCase()
                                         ? 'text-primary'
                                         : 'text-slate-500 hover:text-slate-700'
                                         }`}
@@ -216,10 +242,98 @@ const CourseDetail = () => {
                     {/* Tab Content */}
                     <div className="min-h-[200px]">
                         {activeTab === 'overview' && (
-                            <div className="space-y-4 text-slate-700">
-                                <p>{course.description}</p>
+                            <div className="space-y-8 text-slate-700">
+                                <div>
+                                    <h3 className="text-xl font-bold text-slate-900 mb-4">About this Course</h3>
+                                    <p className="whitespace-pre-wrap leading-relaxed">{course.description}</p>
+                                </div>
+
+                                {/* Learning Outcomes */}
+                                {course.learningOutcomes?.length > 0 && (
+                                    <div className="bg-slate-50 p-6 rounded-xl border border-slate-100">
+                                        <h3 className="text-lg font-bold text-slate-900 mb-4">What you'll learn</h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            {course.learningOutcomes.map((outcome, i) => (
+                                                <div key={i} className="flex items-start">
+                                                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" />
+                                                    <span className="text-slate-700 text-sm">{outcome}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Instructor Info */}
+                                <div>
+                                    <h3 className="text-xl font-bold text-slate-900 mb-4">Meet your Instructor</h3>
+                                    <div className="flex items-start gap-4">
+                                        <div className="h-16 w-16 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-2xl shrink-0">
+                                            {course.instructor?.name?.charAt(0) || 'I'}
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-slate-900 text-lg">{course.instructor?.name}</h4>
+                                            <p className="text-blue-600 font-medium mb-2">{course.specialization || 'Instructor'}</p>
+                                            <div className="flex gap-4 text-sm text-slate-500 mb-2">
+                                                <span className="flex items-center"><Award className="h-4 w-4 mr-1" /> {course.experienceYears || 0}+ Years Exp</span>
+                                                {course.portfolioLink && (
+                                                    <a href={course.portfolioLink} target="_blank" rel="noreferrer" className="flex items-center hover:text-blue-600">
+                                                        <BookOpen className="h-4 w-4 mr-1" /> Portfolio
+                                                    </a>
+                                                )}
+                                            </div>
+                                            {course.certifications && (
+                                                <p className="text-sm text-slate-500"><span className="font-medium">Certifications:</span> {course.certifications}</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         )}
+
+                        {activeTab === 'assignments' && (
+                            <div className="space-y-4">
+                                {assignments.length === 0 ? (
+                                    <div className="text-center py-8 text-slate-500">No assignments available.</div>
+                                ) : (
+                                    assignments.map(assign => (
+                                        <div key={assign._id} className="bg-white border border-slate-200 rounded-xl p-6 flex justify-between items-start hover:border-blue-400 transition-colors">
+                                            <div>
+                                                <h4 className="text-lg font-bold text-slate-900 mb-1">{assign.title}</h4>
+                                                <p className="text-slate-600 text-sm mb-3">Due: {new Date(assign.dueDate).toLocaleDateString()}</p>
+                                                <div className="flex gap-2">
+                                                    <Badge variant="neutral">{assign.maxMarks} Marks</Badge>
+                                                </div>
+                                            </div>
+                                            <Button size="sm" onClick={() => navigate(`/student/assignment/${assign._id}`)}>
+                                                View Assignment
+                                            </Button>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        )}
+
+                        {activeTab === 'quizzes' && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {quizzes.length === 0 ? (
+                                    <div className="col-span-2 text-center py-8 text-slate-500">No quizzes available.</div>
+                                ) : (
+                                    quizzes.map(quiz => (
+                                        <div key={quiz._id} className="bg-white border border-slate-200 rounded-xl p-6 hover:border-blue-400 transition-colors">
+                                            <h4 className="text-lg font-bold text-slate-900 mb-2">{quiz.title}</h4>
+                                            <div className="flex justify-between items-center text-sm text-slate-500 mb-4">
+                                                <span>{quiz.questions.length} Questions</span>
+                                                <span>{quiz.timeLimit} Mins</span>
+                                            </div>
+                                            <Button className="w-full" onClick={() => navigate(`/student/quiz/${quiz._id}`)}>
+                                                Take Quiz
+                                            </Button>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        )}
+
                         {activeTab === 'discussion' && (
                             <div className="text-sm text-slate-500">Discussion coming soon.</div>
                         )}
