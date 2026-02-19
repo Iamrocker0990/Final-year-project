@@ -2,6 +2,28 @@ const Assignment = require('../models/Assignment');
 const Submission = require('../models/Submission');
 const Course = require('../models/Course');
 
+// Helper Functions
+const calculateTotalMarks = (questions) => {
+    return questions.reduce((sum, q) => sum + parseInt(q.marks || 0), 0);
+};
+
+const evaluateQuestion = (question, answer) => {
+    let marksObtained = 0;
+    let status = 'pending';
+
+    if (question && question.type === 'mcq') {
+        if (parseInt(answer.answer) === question.correctOptionIndex) {
+            marksObtained = question.marks;
+            status = 'correct';
+        } else {
+            status = 'incorrect';
+        }
+    }
+    // Add other question types here if needed
+
+    return { marksObtained, status };
+};
+
 // @desc    Create a new assignment
 // @route   POST /api/assignments
 // @access  Private (Teacher)
@@ -20,7 +42,7 @@ const createAssignment = async (req, res) => {
 
         // Validation: Check if questions total marks equals maxMarks
         if (questions && questions.length > 0) {
-            const totalQuestionMarks = questions.reduce((sum, q) => sum + parseInt(q.marks || 0), 0);
+            const totalQuestionMarks = calculateTotalMarks(questions);
             if (totalQuestionMarks !== parseInt(maxMarks)) {
                 return res.status(400).json({
                     message: `Total marks of questions (${totalQuestionMarks}) does not match assignment max marks (${maxMarks})`
@@ -37,7 +59,7 @@ const createAssignment = async (req, res) => {
             maxMarks,
             fileUrl,
             submissionType,
-            questions: questions || [] // Add questions
+            questions: questions || []
         });
 
         const createdAssignment = await assignment.save();
@@ -62,12 +84,9 @@ const getCourseAssignments = async (req, res) => {
 // @desc    Submit an assignment
 // @route   POST /api/assignments/:id/submit
 // @access  Private (Student)
-// @desc    Submit an assignment
-// @route   POST /api/assignments/:id/submit
-// @access  Private (Student)
 const submitAssignment = async (req, res) => {
     try {
-        const { submissionText, fileUrl, answers } = req.body; // Added answers
+        const { submissionText, fileUrl, answers } = req.body;
         const assignmentId = req.params.id;
         const studentId = req.user._id;
 
@@ -100,22 +119,8 @@ const submitAssignment = async (req, res) => {
         if (answers && answers.length > 0 && assignment.questions && assignment.questions.length > 0) {
             processedAnswers = answers.map(ans => {
                 const question = assignment.questions.find(q => q._id.toString() === ans.questionId || assignment.questions.indexOf(q) === ans.questionIndex);
-                let marksObtained = 0;
-                let ansStatus = 'pending';
 
-                if (question) {
-                    // MCQ Evaluation
-                    if (question.type === 'mcq') {
-                        if (parseInt(ans.answer) === question.correctOptionIndex) {
-                            marksObtained = question.marks;
-                            ansStatus = 'correct';
-                        } else {
-                            ansStatus = 'incorrect';
-                        }
-                    }
-                    // Coding/Text: Leave for manual grading (or implement basic runner later)
-                }
-
+                const { marksObtained, status: ansStatus } = evaluateQuestion(question, ans);
                 totalMarks += marksObtained;
 
                 return {
@@ -189,9 +194,6 @@ const gradeSubmission = async (req, res) => {
         if (!submission) {
             return res.status(404).json({ message: 'Submission not found' });
         }
-
-        // Verify teacher ownership via assignment (optional but recommended)
-        // For brevity, skipping extra db call assuming route protection handles basic role check
 
         submission.marks = marks;
         submission.feedback = feedback;

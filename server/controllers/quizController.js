@@ -35,6 +35,27 @@ const createQuiz = async (req, res) => {
     }
 };
 
+// @desc    Get all quizzes for courses the student is enrolled in
+// @route   GET /api/quizzes/mine
+// @access  Private (Student)
+const getMyQuizzes = async (req, res) => {
+    try {
+        const Enrollment = require('../models/Enrollment');
+        // 1. Get student's enrollments
+        const enrollments = await Enrollment.find({ student: req.user._id });
+        const courseIds = enrollments.map(e => e.course);
+
+        // 2. Find quizzes for these courses
+        const quizzes = await Quiz.find({ course: { $in: courseIds } })
+            .populate('course', 'title thumbnail')
+            .sort({ createdAt: -1 });
+
+        res.json(quizzes);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 // @desc    Get all quizzes for a course
 // @route   GET /api/quizzes/course/:courseId
 // @access  Private
@@ -42,6 +63,21 @@ const getCourseQuizzes = async (req, res) => {
     try {
         const quizzes = await Quiz.find({ course: req.params.courseId }).sort({ createdAt: -1 });
         res.json(quizzes);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Get single quiz by ID
+// @route   GET /api/quizzes/:id
+// @access  Private
+const getQuizById = async (req, res) => {
+    try {
+        const quiz = await Quiz.findById(req.params.id);
+        if (!quiz) {
+            return res.status(404).json({ message: 'Quiz not found' });
+        }
+        res.json(quiz);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -90,5 +126,7 @@ const submitQuiz = async (req, res) => {
 module.exports = {
     createQuiz,
     getCourseQuizzes,
+    getMyQuizzes,
+    getQuizById,
     submitQuiz
 };

@@ -61,7 +61,10 @@ const getMyEnrollments = async (req, res) => {
             })
             .sort({ enrolledAt: -1 });
 
-        res.json(enrollments);
+        // Filter out enrollments where the course might have been deleted
+        const validEnrollments = enrollments.filter(e => e.course);
+
+        res.json(validEnrollments);
     } catch (error) {
         console.error("Error fetching enrollments:", error);
         res.status(500).json({ message: 'Server Error' });

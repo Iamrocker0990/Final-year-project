@@ -10,7 +10,9 @@ const {
     getTeacherCourses,
     getCourseById,
     createCourse,
-    addLesson
+    addLesson,
+    updateCourse,
+    deleteCourse
 } = require('../controllers/courseController');
 
 // Ensure upload directory exists
@@ -39,10 +41,10 @@ const upload = multer({
     storage,
     limits: { fileSize: 2 * 1024 * 1024 * 1024 }, // 2GB
     fileFilter: (req, file, cb) => {
-        if (file.mimetype.startsWith('video/')) {
+        if (file.mimetype.startsWith('video/') || file.mimetype.startsWith('image/')) {
             cb(null, true);
         } else {
-            cb(new Error('Only video uploads are allowed'));
+            cb(new Error('Only video and image uploads are allowed'));
         }
     }
 });
@@ -53,14 +55,29 @@ router.get('/mine', protect, teacher, getTeacherCourses);
 router.get('/:id', getCourseById);
 router.post('/', protect, teacher, createCourse);
 router.post('/:id/lessons', protect, teacher, addLesson);
+router.put('/:id', protect, teacher, updateCourse);
+router.delete('/:id', protect, teacher, deleteCourse);
 
 // Video Upload Route (Kept inline as it's tightly coupled with multer middleware)
 router.post('/upload/video', protect, teacher, upload.single('video'), (req, res) => {
     try {
         if (!req.file) {
-            return res.status(400).json({ message: 'No video file uploaded' });
+            return res.status(400).json({ message: 'No file uploaded' });
         }
         // Construct URL based on server address (req.get('host'))
+        const url = `${req.protocol}://${req.get('host')}/uploads/videos/${req.file.filename}`;
+        res.status(201).json({ url });
+    } catch (error) {
+        res.status(500).json({ message: error.message || 'Upload failed' });
+    }
+});
+
+// Image Upload Route
+router.post('/upload/image', protect, teacher, upload.single('image'), (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'No image file uploaded' });
+        }
         const url = `${req.protocol}://${req.get('host')}/uploads/videos/${req.file.filename}`;
         res.status(201).json({ url });
     } catch (error) {

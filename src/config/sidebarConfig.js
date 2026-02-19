@@ -5,7 +5,6 @@ export const studentSidebarItems = [
     { icon: Search, label: 'Browse Courses', href: '/student/catalog' }, // New Link
     { icon: BookOpen, label: 'My Learning', href: '/student/learn' },   // Updated Link
     { icon: Video, label: 'Live Classes', href: '/student/live-classes' },
-    { icon: FileText, label: 'Assignments', href: '/student/assignments' },
     { icon: BarChart2, label: 'Progress', href: '/student/progress' },
     { icon: MessageCircle, label: 'Messages', href: '/student/messages' },
     { icon: Settings, label: 'Settings', href: '/student/settings' },

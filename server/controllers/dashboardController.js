@@ -26,15 +26,18 @@ exports.getStudentDashboard = async (req, res) => {
                 ]
             });
 
-        // 2. Calculate Global Stats
-        const totalCourses = enrollments.length;
+        // 2. Filter out enrollments where the course might have been deleted
+        const validEnrollments = enrollments.filter(e => e.course);
 
-        const totalCompletedLessons = enrollments.reduce((total, enrollment) => {
+        // 3. Calculate Global Stats
+        const totalCourses = validEnrollments.length;
+
+        const totalCompletedLessons = validEnrollments.reduce((total, enrollment) => {
             return total + (enrollment.completedLessons ? enrollment.completedLessons.length : 0);
         }, 0);
 
-        // 3. Format the "Active Courses" list
-        const activeCourses = enrollments.map(enrollment => {
+        // 4. Format the "Active Courses" list
+        const activeCourses = validEnrollments.map(enrollment => {
             const course = enrollment.course;
 
             // Calculate total lessons in the course

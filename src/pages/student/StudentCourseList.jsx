@@ -26,7 +26,7 @@ const StudentCourseList = () => {
                 ]);
                 setCourses(coursesData);
                 // Create a Set of enrolled course IDs for O(1) lookup
-                setMyEnrollments(new Set(enrollmentsData.map(e => e.course._id)));
+                setMyEnrollments(new Set(enrollmentsData.filter(e => e.course).map(e => e.course._id)));
             } catch (err) {
                 console.error("Failed to fetch data:", err);
                 setError("Failed to load course catalog.");

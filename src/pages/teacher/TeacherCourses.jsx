@@ -39,6 +39,45 @@ const TeacherCourses = () => {
         fetchCourses();
     }, []);
 
+    const [selectedCourses, setSelectedCourses] = React.useState([]);
+
+    const handleSelectAll = (e) => {
+        if (e.target.checked) {
+            setSelectedCourses(courses.map(c => c.id));
+        } else {
+            setSelectedCourses([]);
+        }
+    };
+
+    const handleSelectCourse = (id) => {
+        if (selectedCourses.includes(id)) {
+            setSelectedCourses(selectedCourses.filter(cId => cId !== id));
+        } else {
+            setSelectedCourses([...selectedCourses, id]);
+        }
+    };
+
+    const handleBulkDelete = async () => {
+        if (!window.confirm(`Are you sure you want to delete ${selectedCourses.length} courses? This action cannot be undone.`)) return;
+
+        try {
+            // Delete sequentially to avoid overwhelming server or hitting rate limits
+            // Alternatively, Promise.all could be used for parallel deletion
+            for (const id of selectedCourses) {
+                await courseService.deleteCourse(id);
+            }
+            // Update UI
+            setCourses(courses.filter(c => !selectedCourses.includes(c.id)));
+            setSelectedCourses([]);
+            alert("Courses deleted successfully.");
+        } catch (error) {
+            console.error("Bulk delete failed", error);
+            alert("Failed to delete some courses.");
+            // Refresh list to sync state
+            window.location.reload();
+        }
+    };
+
     return (
         <DashboardLayout userType="teacher" title="My Courses">
             <div className="flex justify-between items-center mb-8">
@@ -62,11 +101,18 @@ const TeacherCourses = () => {
                         <option>Data Science</option>
                     </select>
                 </div>
-                <Link to="/teacher/create-course">
-                    <Button>
-                        <Plus className="h-4 w-4 mr-2" /> Create New Course
-                    </Button>
-                </Link>
+                <div className="flex gap-2">
+                    {selectedCourses.length > 0 && (
+                        <Button variant="danger" onClick={handleBulkDelete} className="bg-red-500 hover:bg-red-600 text-white">
+                            <Trash className="h-4 w-4 mr-2" /> Delete Selected ({selectedCourses.length})
+                        </Button>
+                    )}
+                    <Link to="/teacher/create-course">
+                        <Button>
+                            <Plus className="h-4 w-4 mr-2" /> Create New Course
+                        </Button>
+                    </Link>
+                </div>
             </div>
 
             <Card className="overflow-hidden">
@@ -74,6 +120,14 @@ const TeacherCourses = () => {
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-slate-50 border-b border-slate-200">
+                                <th className="px-6 py-4 text-sm font-semibold text-slate-700 w-10">
+                                    <input
+                                        type="checkbox"
+                                        onChange={handleSelectAll}
+                                        checked={courses.length > 0 && selectedCourses.length === courses.length}
+                                        className="rounded border-gray-300 text-primary focus:ring-primary"
+                                    />
+                                </th>
                                 <th className="px-6 py-4 text-sm font-semibold text-slate-700">Course Name</th>
                                 <th className="px-6 py-4 text-sm font-semibold text-slate-700">Category</th>
                                 <th className="px-6 py-4 text-sm font-semibold text-slate-700">Students</th>
@@ -84,9 +138,17 @@ const TeacherCourses = () => {
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                             {courses.map((course) => (
-                                <tr key={course.id} className="hover:bg-slate-50 transition-colors">
+                                <tr key={course.id} className={`hover:bg-slate-50 transition-colors ${selectedCourses.includes(course.id) ? 'bg-blue-50' : ''}`}>
                                     <td className="px-6 py-4">
-                                        <div className="flex items-center space-x-3 cursor-pointer" onClick={() => navigate(`/teacher/course/${course.id}/content`)}>
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedCourses.includes(course.id)}
+                                            onChange={() => handleSelectCourse(course.id)}
+                                            className="rounded border-gray-300 text-primary focus:ring-primary"
+                                        />
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center space-x-3">
                                             <img src={course.image} alt="" className="h-10 w-10 rounded-lg object-cover" />
                                             <span className="font-medium text-slate-900">{course.title}</span>
                                         </div>
@@ -108,10 +170,28 @@ const TeacherCourses = () => {
                                             >
                                                 <BookOpen className="h-4 w-4" />
                                             </button>
-                                            <button className="p-1 text-slate-400 hover:text-primary transition-colors" title="Edit">
+                                            <button
+                                                className="p-1 text-slate-400 hover:text-primary transition-colors"
+                                                title="Edit"
+                                                onClick={() => navigate(`/teacher/edit-course/${course.id}`)}
+                                            >
                                                 <Edit className="h-4 w-4" />
                                             </button>
-                                            <button className="p-1 text-slate-400 hover:text-red-500 transition-colors" title="Delete">
+                                            <button
+                                                className="p-1 text-slate-400 hover:text-red-500 transition-colors"
+                                                title="Delete"
+                                                onClick={async () => {
+                                                    if (window.confirm('Are you sure you want to delete this course? This action cannot be undone.')) {
+                                                        try {
+                                                            await courseService.deleteCourse(course.id);
+                                                            setCourses(courses.filter(c => c.id !== course.id));
+                                                        } catch (error) {
+                                                            console.error("Failed to delete course", error);
+                                                            alert("Failed to delete course");
+                                                        }
+                                                    }
+                                                }}
+                                            >
                                                 <Trash className="h-4 w-4" />
                                             </button>
                                         </div>

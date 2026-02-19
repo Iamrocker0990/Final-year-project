@@ -227,10 +227,124 @@ const addLesson = async (req, res) => {
 // For now, the existing route handles file upload and returns URL directly. 
 // We might not need a controller method if the route just uses multer middleware + simple response.
 
+// @desc    Update a course
+// @route   PUT /api/courses/:id
+// @access  Private/Teacher
+const updateCourse = async (req, res) => {
+    try {
+        const {
+            title, description, thumbnail, price, category, level, duration,
+            shortDescription, experienceYears, specialization, portfolioLink, certifications,
+            learningOutcomes, estimatedDuration, prerequisites, targetAudience,
+            modules // Get modules from body
+        } = req.body;
+
+        const course = await Course.findById(req.params.id);
+
+        if (course) {
+            // Check ownership
+            if (course.instructor.toString() !== req.user._id.toString() &&
+                course.createdBy?.toString() !== req.user._id.toString() &&
+                req.user.role !== 'admin') {
+                return res.status(401).json({ message: 'Not authorized to update this course' });
+            }
+
+            // Update fields
+            course.title = title || course.title;
+            course.description = description || course.description;
+            course.thumbnail = thumbnail || course.thumbnail;
+            course.price = price || course.price;
+            course.category = category || course.category;
+            course.level = level || course.level;
+            course.duration = duration || course.duration;
+            course.shortDescription = shortDescription || course.shortDescription;
+            course.experienceYears = experienceYears || course.experienceYears;
+            course.specialization = specialization || course.specialization;
+            course.portfolioLink = portfolioLink || course.portfolioLink;
+            course.certifications = certifications || course.certifications;
+            course.learningOutcomes = learningOutcomes || course.learningOutcomes;
+            course.estimatedDuration = estimatedDuration || course.estimatedDuration;
+            course.prerequisites = prerequisites || course.prerequisites;
+            course.targetAudience = targetAudience || course.targetAudience;
+
+            // Process Modules and Lessons if provided
+            if (modules && modules.length > 0) {
+                const processedModules = [];
+                for (const m of modules) {
+                    const processedLessons = [];
+                    for (const l of m.lessons) {
+                        let content = l.content;
+                        if (l.type === 'quiz' && !l.content && l.questions) {
+                            const newQuiz = new Quiz({
+                                title: l.title,
+                                course: course._id,
+                                instructor: req.user._id,
+                                questions: l.questions || [],
+                                timeLimit: 30,
+                                totalMarks: l.questions ? l.questions.length * 10 : 100
+                            });
+                            const savedQuiz = await newQuiz.save();
+                            content = savedQuiz._id.toString();
+                        }
+
+                        processedLessons.push({
+                            title: l.title,
+                            type: l.type,
+                            content: content,
+                            duration: l.duration || ''
+                        });
+                    }
+                    processedModules.push({
+                        title: m.title,
+                        lessons: processedLessons
+                    });
+                }
+                course.modules = processedModules;
+            }
+
+            const updatedCourse = await course.save();
+            res.json(updatedCourse);
+        } else {
+            res.status(404).json({ message: 'Course not found' });
+        }
+    } catch (error) {
+        console.error('Error updating course:', error);
+        res.status(400).json({ message: 'Error updating course' });
+    }
+};
+
+// @desc    Delete a course
+// @route   DELETE /api/courses/:id
+// @access  Private/Teacher
+const deleteCourse = async (req, res) => {
+    try {
+        const course = await Course.findById(req.params.id);
+
+        if (course) {
+            // Check ownership
+            if (course.instructor.toString() !== req.user._id.toString() &&
+                course.createdBy?.toString() !== req.user._id.toString() &&
+                req.user.role !== 'admin') {
+                return res.status(401).json({ message: 'Not authorized to delete this course' });
+            }
+
+            await course.deleteOne(); // or findByIdAndDelete(req.params.id)
+            res.json({ message: 'Course removed' });
+        } else {
+            res.status(404).json({ message: 'Course not found' });
+        }
+    } catch (error) {
+        console.error('Error deleting course:', error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
 module.exports = {
     getAllCourses,
     getTeacherCourses,
     getCourseById,
     createCourse,
-    addLesson
+    addLesson,
+    updateCourse,
+    deleteCourse
 };

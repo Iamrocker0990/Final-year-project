@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { BookOpen, Users, FileText, Award, BarChart2, MessageCircle, Plus, Upload, Image as ImageIcon, Save, ArrowLeft, Loader, Check, Briefcase, GraduationCap, Link as LinkIcon, AlertCircle, Trash } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -10,6 +10,8 @@ import axios from 'axios';
 
 const CreateCourse = () => {
     const navigate = useNavigate();
+    const { id } = useParams();
+    const isEditMode = !!id;
     const [isLoading, setIsLoading] = useState(false);
     const [step, setStep] = useState(1); // 1: Basic, 2: Teacher, 3: Structure, 4: Curriculum
     const [uploadProgress, setUploadProgress] = useState('');
@@ -56,27 +58,66 @@ const CreateCourse = () => {
     const DRAFT_KEY = 'course_creation_draft';
 
     // Load Draft on Mount
+    // Load Draft on Mount or Fetch Course Data for Edit
     React.useEffect(() => {
-        const savedDraft = localStorage.getItem(DRAFT_KEY);
-        if (savedDraft) {
-            try {
-                const parsed = JSON.parse(savedDraft);
-                // Confirm with user or just load appropriately? 
-                // For now, auto-load if it exists creates a seamless experience.
-                setFormData(prev => ({ ...prev, ...parsed.data }));
-                setStep(parsed.step || 1);
-                console.log("Draft loaded from local storage");
-            } catch (e) {
-                console.error("Failed to parse draft", e);
+        if (isEditMode) {
+            const fetchCourse = async () => {
+                try {
+                    setIsLoading(true);
+                    const courseData = await courseService.getCourseById(id);
+
+                    // Transform backend data to form format
+                    setFormData({
+                        title: courseData.title || '',
+                        category: courseData.category || '',
+                        level: courseData.level || '',
+                        shortDescription: courseData.shortDescription || '',
+                        description: courseData.description || '',
+                        price: courseData.price || '',
+                        experienceYears: courseData.experienceYears || '',
+                        specialization: courseData.specialization || '',
+                        portfolioLink: courseData.portfolioLink || '',
+                        certifications: courseData.certifications || '',
+                        learningOutcomes: courseData.learningOutcomes || [''],
+                        estimatedDuration: courseData.estimatedDuration || '',
+                        prerequisites: courseData.prerequisites || [''],
+                        targetAudience: courseData.targetAudience || [''],
+                        modules: courseData.modules || []
+                    });
+
+                    if (courseData.thumbnail) {
+                        setPreviewUrl(courseData.thumbnail);
+                    }
+
+                } catch (error) {
+                    console.error("Failed to fetch course details", error);
+                    alert("Failed to load course details");
+                    navigate('/teacher/courses');
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+            fetchCourse();
+        } else {
+            const savedDraft = localStorage.getItem(DRAFT_KEY);
+            if (savedDraft) {
+                try {
+                    const parsed = JSON.parse(savedDraft);
+                    setFormData(prev => ({ ...prev, ...parsed.data }));
+                    setStep(parsed.step || 1);
+                    console.log("Draft loaded from local storage");
+                } catch (e) {
+                    console.error("Failed to parse draft", e);
+                }
             }
         }
-    }, []);
+    }, [id, isEditMode, navigate]);
 
     // Save Draft on Change (Debounced simple implementation via effect dependency)
     React.useEffect(() => {
         const timer = setTimeout(() => {
             const dataToSave = {
-                data: formData,
+                data: { ...formData }, // Create shallow copy to avoid mutating state
                 step: step
             };
             // Remove file objects before saving to avoid circular json / storage limit
@@ -194,7 +235,11 @@ const CreateCourse = () => {
             if (m.lessons.length === 0) return alert(`Module "${m.title}" has no lessons.`);
             for (let l of m.lessons) {
                 if (!l.title.trim()) return alert(`A lesson in "${m.title}" is missing a title.`);
-                if (!l.file) return alert(`Lesson "${l.title}" in "${m.title}" is missing a video file.`);
+
+                // Only check for video file if type is video (or undefined default)
+                if ((!l.type || l.type === 'video') && !l.file && !l.content) {
+                    return alert(`Lesson "${l.title}" in "${m.title}" is missing a video file.`);
+                }
             }
         }
 
@@ -206,15 +251,24 @@ const CreateCourse = () => {
             const { token } = userInfoString ? JSON.parse(userInfoString) : {};
 
             // 1. Upload Thumbnail
-            let thumbnailUrl = '';
+            let thumbnailUrl = (!thumbnailFile && previewUrl) ? previewUrl : ''; // Use existing if no new file
+
             if (thumbnailFile) {
                 setUploadProgress('Uploading thumbnail...');
-                const imageFormData = new FormData();
-                imageFormData.append("file", thumbnailFile);
-                imageFormData.append("upload_preset", UPLOAD_PRESET);
-                imageFormData.append("cloud_name", CLOUD_NAME);
-                const res = await axios.post(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, imageFormData);
-                thumbnailUrl = res.data.secure_url;
+                const thumbnailFormData = new FormData();
+                thumbnailFormData.append('image', thumbnailFile); // Key matches backend route 'image'
+                try {
+                    const data = await courseService.uploadImage(thumbnailFormData);
+                    thumbnailUrl = data.url;
+                    console.log("Thumbnail uploaded:", thumbnailUrl);
+                } catch (error) {
+                    console.error("Thumbnail upload failed", error);
+                    alert("Failed to upload thumbnail. Using default placeholder or skipping.");
+                    // Fallback or stop? Let's stop to let user know.
+                    // But for robustness, we could just log it.
+                    // Let's alert but proceed if it's optional? No, usually required.
+                    return;
+                }
             }
 
             // 2. Upload Lesson Videos
@@ -266,8 +320,21 @@ const CreateCourse = () => {
                 modules: finalModules // Send the structure with URLs
             };
 
-            await courseService.createCourse(courseData);
-            alert('Course Submitted for Review!');
+            console.log("Submitting course data:", courseData);
+
+            if (isEditMode) {
+                setUploadProgress('Updating course...');
+                await courseService.updateCourse(id, courseData);
+                localStorage.removeItem(DRAFT_KEY); // Clear draft
+                console.log("Course updated successfully");
+                alert('Course Updated Successfully!');
+            } else {
+                await courseService.createCourse(courseData);
+                localStorage.removeItem(DRAFT_KEY); // Clear draft
+                console.log("Course created successfully");
+                alert('Course Submitted for Review!');
+            }
+            console.log("Navigating to courses list...");
             navigate('/teacher/courses');
 
         } catch (error) {
@@ -280,19 +347,28 @@ const CreateCourse = () => {
     };
 
     return (
-        <DashboardLayout userType="teacher" title="Create New Course">
+        <DashboardLayout userType="teacher" title={isEditMode ? "Edit Course" : "Create New Course"}>
             <div className="max-w-4xl mx-auto">
                 <Link to="/teacher/courses" className="inline-flex items-center text-sm text-slate-500 hover:text-blue-600 mb-6">
                     <ArrowLeft className="h-4 w-4 mr-1" /> Back to My Courses
                 </Link>
 
-                <div className="flex justify-between mb-8 max-w-xl mx-auto">
+                <div className="flex justify-between mb-8 max-w-xl mx-auto relative">
+                    {/* Progress Bar Background */}
+                    <div className="absolute top-4 md:top-5 left-0 w-full h-1 bg-slate-200 z-0 rounded-full"></div>
+
+                    {/* Progress Bar Fill */}
+                    <div
+                        className="absolute top-4 md:top-5 left-0 h-1 bg-blue-600 z-0 rounded-full transition-all duration-300"
+                        style={{ width: `${((step - 1) / 3) * 100}%` }}
+                    ></div>
+
                     {[1, 2, 3, 4].map((s) => (
                         <div key={s} className="flex flex-col items-center relative z-10">
-                            <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-bold transition-colors ${step >= s ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-200 text-slate-500'}`}>
+                            <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-bold transition-colors ${step >= s ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-200 text-slate-500 bg-white border-4 border-slate-50'}`}>
                                 {step > s ? <Check className="h-5 w-5" /> : s}
                             </div>
-                            <span className="hidden md:block text-xs font-medium mt-2 text-slate-500">
+                            <span className={`hidden md:block text-xs font-medium mt-2 ${step >= s ? 'text-blue-600' : 'text-slate-500'}`}>
                                 {s === 1 ? 'Basic' : s === 2 ? 'Teacher' : s === 3 ? 'Structure' : 'Content'}
                             </span>
                         </div>
@@ -338,7 +414,7 @@ const CreateCourse = () => {
                                 </div>
                                 <div className="md:col-span-2">
                                     <label className="block text-sm font-medium text-slate-700 mb-1.5">Thumbnail</label>
-                                    <input type="file" onChange={handleFileChange} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-full file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                                    <input type="file" accept=".png,.jpg,.jpeg,.webp" onChange={handleFileChange} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-full file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
                                     {previewUrl && <img src={previewUrl} alt="Preview" className="h-32 mt-4 rounded-lg object-cover" />}
                                 </div>
                             </div>
@@ -433,7 +509,6 @@ const CreateCourse = () => {
                                                                 className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm outline-none focus:ring-2 focus:ring-blue-500"
                                                             >
                                                                 <option value="video">Video Lesson</option>
-                                                                <option value="assignment">Assignment</option>
                                                                 <option value="quiz">Quiz</option>
                                                             </select>
                                                         </div>
@@ -587,7 +662,7 @@ const CreateCourse = () => {
                                 {isLoading ? (
                                     <><Loader className="h-4 w-4 mr-2 animate-spin" /> {uploadProgress || 'Processing...'}</>
                                 ) : (
-                                    <><Save className="h-4 w-4 mr-2" /> Publish Course</>
+                                    <><Save className="h-4 w-4 mr-2" /> {isEditMode ? 'Update Course' : 'Publish Course'}</>
                                 )}
                             </Button>
                         )}

@@ -102,9 +102,9 @@ const TakeQuiz = () => {
                         <p className="text-slate-600 mb-6">You have successfully completed this quiz.</p>
 
                         <div className="bg-slate-50 rounded-xl p-6 max-w-sm mx-auto mb-8 border border-slate-200">
-                            <p className="text-sm text-slate-500 uppercase tracking-wider font-semibold mb-2">Your Score</p>
+                            <p className="text-sm text-slate-500 uppercase tracking-wider font-semibold mb-2">You Scored</p>
                             <div className="text-4xl font-bold text-slate-900">
-                                {result.score} <span className="text-xl text-slate-400 font-normal">/ {result.totalMarks}</span>
+                                {result.score} <span className="text-xl text-slate-400 font-normal">Marks / {result.totalMarks} Total</span>
                             </div>
                         </div>
 
@@ -133,18 +133,18 @@ const TakeQuiz = () => {
                                         <div className="flex-1">
                                             <h3 className="text-lg font-medium text-slate-900 mb-4">{q.question}</h3>
                                             <div className="space-y-3">
-                                                {[q.opt1, q.opt2, q.opt3, q.opt4].map((opt, optIndex) => (
+                                                {[q.option1, q.option2, q.option3, q.option4].map((opt, optIndex) => (
                                                     <div
                                                         key={optIndex}
                                                         onClick={() => handleOptionSelect(q._id, optIndex + 1)}
                                                         className={`p-4 rounded-lg border cursor-pointer transition-all flex items-center ${answers[q._id] === optIndex + 1
-                                                                ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                                                                : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                                                            ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                                                            : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                                                             }`}
                                                     >
                                                         <div className={`h-5 w-5 rounded-full border mr-3 flex items-center justify-center ${answers[q._id] === optIndex + 1
-                                                                ? 'border-primary'
-                                                                : 'border-slate-300'
+                                                            ? 'border-primary'
+                                                            : 'border-slate-300'
                                                             }`}>
                                                             {answers[q._id] === optIndex + 1 && (
                                                                 <div className="h-2.5 w-2.5 rounded-full bg-primary" />

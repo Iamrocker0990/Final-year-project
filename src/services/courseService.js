@@ -41,6 +41,16 @@ const courseService = {
         return response.data;
     },
 
+    // Teacher: Upload image (returns URL)
+    uploadImage: async (formData) => {
+        const response = await api.post('/courses/upload/image', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    },
+
     // Student: Enroll in course
     enrollInCourse: async (courseId) => {
         const response = await api.post(`/enrollments/${courseId}`);
@@ -50,6 +60,18 @@ const courseService = {
     // Student: Get my enrollments
     getMyEnrollments: async () => {
         const response = await api.get('/enrollments/my-enrollments');
+        return response.data;
+    },
+
+    // Teacher: Update course
+    updateCourse: async (id, courseData) => {
+        const response = await api.put(`/courses/${id}`, courseData);
+        return response.data;
+    },
+
+    // Teacher: Delete course
+    deleteCourse: async (id) => {
+        const response = await api.delete(`/courses/${id}`);
         return response.data;
     }
 };
