@@ -1,4 +1,5 @@
 const Course = require('../models/Course');
+const Enrollment = require('../models/Enrollment');
 const path = require('path');
 const fs = require('fs');
 
@@ -161,10 +162,42 @@ const addLesson = async (req, res) => {
 // For now, the existing route handles file upload and returns URL directly. 
 // We might not need a controller method if the route just uses multer middleware + simple response.
 
+// @desc    Delete a course
+// @route   DELETE /api/courses/:id
+// @access  Private/Teacher
+const deleteCourse = async (req, res) => {
+    try {
+        const course = await Course.findById(req.params.id);
+
+        if (!course) {
+            return res.status(404).json({ message: 'Course not found' });
+        }
+
+        // Check ownership
+        if (course.instructor.toString() !== req.user._id.toString() &&
+            course.createdBy?.toString() !== req.user._id.toString() &&
+            req.user.role !== 'admin') {
+            return res.status(401).json({ message: 'Not authorized to delete this course' });
+        }
+
+        // CASCADE DELETE: Remove all enrollments for this course
+        await Enrollment.deleteMany({ course: req.params.id });
+
+        // Use safe delete method
+        await Course.findByIdAndDelete(req.params.id);
+
+        res.json({ message: 'Course removed' });
+    } catch (error) {
+        console.error('Error deleting course:', error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
 module.exports = {
     getAllCourses,
     getTeacherCourses,
     getCourseById,
     createCourse,
-    addLesson
+    addLesson,
+    deleteCourse
 };

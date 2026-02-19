@@ -34,52 +34,54 @@ exports.getStudentDashboard = async (req, res) => {
         }, 0);
 
         // 3. Format the "Active Courses" list
-        const activeCourses = enrollments.map(enrollment => {
-            const course = enrollment.course;
+        const activeCourses = enrollments
+            .filter(enrollment => enrollment.course) // Filter out orphaned enrollments
+            .map(enrollment => {
+                const course = enrollment.course;
 
-            // Calculate total lessons in the course
-            let totalLessons = 0;
-            if (course.modules && course.modules.length > 0) {
-                totalLessons = course.modules.reduce((acc, module) => acc + (module.lessons ? module.lessons.length : 0), 0);
-            }
+                // Calculate total lessons in the course
+                let totalLessons = 0;
+                if (course.modules && course.modules.length > 0) {
+                    totalLessons = course.modules.reduce((acc, module) => acc + (module.lessons ? module.lessons.length : 0), 0);
+                }
 
-            // Find the "Next Lesson"
-            let nextLessonTitle = "Course Completed";
-            let foundNext = false;
+                // Find the "Next Lesson"
+                let nextLessonTitle = "Course Completed";
+                let foundNext = false;
 
-            if (course.modules) {
-                for (const module of course.modules) {
-                    if (foundNext) break;
-                    if (module.lessons) {
-                        for (const lesson of module.lessons) {
-                            const isCompleted = enrollment.completedLessons.some(id => id.toString() === lesson._id.toString());
-                            if (!isCompleted) {
-                                nextLessonTitle = lesson.title;
-                                foundNext = true;
-                                break;
+                if (course.modules) {
+                    for (const module of course.modules) {
+                        if (foundNext) break;
+                        if (module.lessons) {
+                            for (const lesson of module.lessons) {
+                                const isCompleted = enrollment.completedLessons.some(id => id.toString() === lesson._id.toString());
+                                if (!isCompleted) {
+                                    nextLessonTitle = lesson.title;
+                                    foundNext = true;
+                                    break;
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            // Determine status
-            const progress = enrollment.progress || 0;
-            const status = progress === 100 ? 'Completed' : 'In Progress';
-            const completedCount = enrollment.completedLessons ? enrollment.completedLessons.length : 0;
+                // Determine status
+                const progress = enrollment.progress || 0;
+                const status = progress === 100 ? 'Completed' : 'In Progress';
+                const completedCount = enrollment.completedLessons ? enrollment.completedLessons.length : 0;
 
-            return {
-                _id: course._id,
-                title: course.title,
-                thumbnail: course.thumbnail,
-                instructor: course.instructor ? course.instructor.name : 'Unknown Instructor',
-                progress: progress,
-                totalLessons: totalLessons,
-                completedLessons: completedCount,
-                nextLesson: nextLessonTitle,
-                status: status
-            };
-        });
+                return {
+                    _id: course._id,
+                    title: course.title,
+                    thumbnail: course.thumbnail,
+                    instructor: course.instructor ? course.instructor.name : 'Unknown Instructor',
+                    progress: progress,
+                    totalLessons: totalLessons,
+                    completedLessons: completedCount,
+                    nextLesson: nextLessonTitle,
+                    status: status
+                };
+            });
 
         // 4. Send the final package
         res.json({

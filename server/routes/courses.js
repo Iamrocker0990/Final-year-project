@@ -10,7 +10,8 @@ const {
     getTeacherCourses,
     getCourseById,
     createCourse,
-    addLesson
+    addLesson,
+    deleteCourse
 } = require('../controllers/courseController');
 
 // Ensure upload directory exists
@@ -53,6 +54,7 @@ router.get('/mine', protect, teacher, getTeacherCourses);
 router.get('/:id', getCourseById);
 router.post('/', protect, teacher, createCourse);
 router.post('/:id/lessons', protect, teacher, addLesson);
+router.delete('/:id', protect, teacher, deleteCourse);
 
 // Video Upload Route (Kept inline as it's tightly coupled with multer middleware)
 router.post('/upload/video', protect, teacher, upload.single('video'), (req, res) => {
