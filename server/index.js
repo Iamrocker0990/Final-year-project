@@ -33,6 +33,7 @@ app.use('/api/student', studentRoutes);
 app.use('/api/teachers', require('./routes/teachers'));
 app.use('/api/quiz', require('./routes/quiz'));
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/assignments', require('./routes/assignmentRoutes'));
 
 app.get('/', (req, res) => {
     res.send('EduSync API is running');
